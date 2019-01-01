@@ -32,9 +32,9 @@ test('should authenticate', async (t) => {
   const isAuth2 = oauth2.isAuthenticated(ret)
 
   t.false(isAuth1)
-  t.true(isAuth2)
   t.is(ret.status, 'granted')
   t.is(ret.token, 't0k3n')
+  t.true(isAuth2)
   t.true(scope.isDone())
 
   nock.restore()
