@@ -12,7 +12,7 @@ interface Response {
   data?: Data
 }
 
-const { adapter: formAdapter } = form
+const { form: formAdapter } = form.adapters
 
 const validOptions = (options: Options) =>
   !!(options.clientId && options.clientSecret && options.redirectUri && options.refreshToken && options.apiUri)
