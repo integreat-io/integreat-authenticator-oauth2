@@ -1,0 +1,6 @@
+src/
+*.test.ts
+*.map
+.*
+tsconfig.json
+tslint.json
