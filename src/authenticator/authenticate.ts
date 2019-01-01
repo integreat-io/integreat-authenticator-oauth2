@@ -53,7 +53,7 @@ export default async function authenticate (options: Options): Promise<Authentic
   const request = {
     method: 'QUERY',
     data: {
-      grant_type: 'refreshToken',
+      grant_type: 'refresh_token',
       client_id: options.clientId,
       client_secret: options.clientSecret,
       redirect_uri: options.redirectUri,

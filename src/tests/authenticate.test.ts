@@ -5,7 +5,7 @@ import resources from '..'
 const { oauth2 } = resources.authenticators
 
 test('should authenticate', async (t) => {
-  const expectedRequest = 'grant_type=refreshToken&client_id=client1&client_secret=s3cr3t&' +
+  const expectedRequest = 'grant_type=refresh_token&client_id=client1&client_secret=s3cr3t&' +
     'redirect_uri=https%3A%2F%2Fredirect.com%2Fhere&refresh_token=r3fr3sh'
   const scope = nock('https://api1.test', {
     reqheaders: {
