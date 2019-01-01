@@ -72,3 +72,19 @@ test('asHttpHeaders should return empty object when not authenticated', (t) => {
 
   t.deepEqual(ret, expected)
 })
+
+test('asHttpHeaders should support unbinded call to function', (t) => {
+  const authentication = {
+    status: 'granted',
+    token: 't0k3n',
+    expire: Date.now() + 3600000
+  }
+  const expected = {
+    Authorization: 'Bearer t0k3n'
+  }
+  const { asHttpHeaders } = authenticator
+
+  const ret = asHttpHeaders(authentication)
+
+  t.deepEqual(ret, expected)
+})

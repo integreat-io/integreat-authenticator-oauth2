@@ -15,25 +15,27 @@ export type Options = {
   refreshToken?: string
 }
 
+function isAuthenticated (authentication: Authentication | null) {
+  if (!authentication) {
+    return false
+  }
+  const { status, token, expire } = authentication
+  return status === 'granted' && !!token && Date.now() < (expire || 0)
+}
+
 export default {
   authenticate,
 
-  isAuthenticated (authentication: Authentication | null) {
-    if (!authentication) {
-      return false
-    }
-    const { status, token, expire } = authentication
-    return status === 'granted' && !!token && Date.now() < (expire || 0)
-  },
+  isAuthenticated,
 
   asObject (authentication: Authentication) {
-    return (this.isAuthenticated(authentication))
+    return (isAuthenticated(authentication))
       ? { token: authentication.token }
       : {}
   },
 
   asHttpHeaders (authentication: Authentication) {
-    return (this.isAuthenticated(authentication))
+    return (isAuthenticated(authentication))
       ? { Authorization: `Bearer ${authentication.token}` }
       : {}
   }
