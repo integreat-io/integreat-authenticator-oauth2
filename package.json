@@ -12,41 +12,14 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "start": "tsc && node dist/index.js",
-    "test": "nyc --reporter=text-summary ava",
-    "test:watch": "npm run dev",
+    "test": "npm run build && nyc --reporter=text-summary ava --config ./ava-dist.config.js",
     "test:inspect": "node --inspect node_modules/ava/profile.js",
+    "test:watch": "npm run dev",
     "dev": "ava --watch",
     "build": "tsc",
-    "prepare": "npm run build",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
-    "nyc:report": "nyc report",
-    "lint": "tslint --project tsconfig.json --config tslint.json"
-  },
-  "ava": {
-    "compileEnhancements": false,
-    "extensions": [
-      "ts"
-    ],
-    "require": [
-      "ts-node/register/transpile-only"
-    ],
-    "files": [
-      "src/**/*.test.ts"
-    ],
-    "sources": [
-      "src/**/!(*.test).ts"
-    ]
-  },
-  "nyc": {
-    "extension": [
-      ".ts",
-      ".js"
-    ],
-    "exclude": [
-      "**/*.test.js",
-      "**/*.test.ts"
-    ]
+    "nyc:report": "nyc report --reporter=text --reporter=html",
+    "lint": "eslint --ext .ts src"
   },
   "repository": {
     "type": "git",
@@ -57,22 +30,14 @@
   },
   "homepage": "https://github.com/integreat-io/integreat-authenticator-oauth2#readme",
   "engines": {
-    "node": ">= 8.6",
-    "npm": ">= 5.4"
+    "node": ">= 10"
   },
   "dependencies": {
     "integreat-adapter-form": "^0.1.0"
   },
   "devDependencies": {
+    "@integreat/ts-dev-setup": "^1.0.1",
     "@types/nock": "^10.0.3",
-    "ava": "^2.1.0",
-    "babel-preset-env": "^1.7.0",
-    "coveralls": "^3.0.4",
-    "nock": "^10.0.6",
-    "nyc": "^14.1.1",
-    "ts-node": "^8.3.0",
-    "tslint": "^5.18.0",
-    "tslint-config-standard": "^8.0.1",
-    "typescript": "^3.5.2"
+    "nock": "^10.0.6"
   }
 }

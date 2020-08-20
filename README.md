@@ -12,7 +12,7 @@ Makes Integreat handle authentication with an OAuth 2.0 service.
 
 ### Prerequisits
 
-Requires node v8.6 and Integreat v0.7.
+Requires node v10 and Integreat v0.7.
 
 ### Installing and using
 
