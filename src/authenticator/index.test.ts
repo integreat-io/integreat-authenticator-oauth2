@@ -3,15 +3,27 @@ import test from 'ava'
 import authenticator from '.'
 
 test('isAuthenticated should recognize authentications', (t) => {
-  const authenticated = { status: 'granted', token: 't0k3n', expire: Date.now() + 3600000 }
-  const expired = { status: 'granted', token: 't0k3n', expire: Date.now() - 3600000 }
+  const authenticated = {
+    status: 'granted',
+    token: 't0k3n',
+    expire: Date.now() + 3600000,
+  }
+  const expired = {
+    status: 'granted',
+    token: 't0k3n',
+    expire: Date.now() - 3600000,
+  }
   const noExpired = { status: 'granted', token: 't0k3n' }
   const unauthenticated = { status: 'granted' }
-  const refused = { status: 'refused', token: 't0k3n', expire: Date.now() + 3600000 }
+  const refused = {
+    status: 'refused',
+    token: 't0k3n',
+    expire: Date.now() + 3600000,
+  }
 
   t.true(authenticator.isAuthenticated(authenticated))
   t.false(authenticator.isAuthenticated(expired))
-  t.false(authenticator.isAuthenticated(noExpired))
+  t.true(authenticator.isAuthenticated(noExpired))
   t.false(authenticator.isAuthenticated(unauthenticated))
   t.false(authenticator.isAuthenticated(refused))
   t.false(authenticator.isAuthenticated(null))
@@ -21,10 +33,10 @@ test('asObject should return token', (t) => {
   const authentication = {
     status: 'granted',
     token: 't0k3n',
-    expire: Date.now() + 3600000
+    expire: Date.now() + 3600000,
   }
   const expected = {
-    token: 't0k3n'
+    token: 't0k3n',
   }
 
   const ret = authenticator.asObject(authentication)
@@ -36,7 +48,7 @@ test('asObject should return empty object when not authenticated', (t) => {
   const authentication = {
     status: 'granted',
     token: 't0k3n',
-    expire: Date.now() - 3600000
+    expire: Date.now() - 3600000,
   }
   const expected = {}
 
@@ -49,10 +61,10 @@ test('asHttpHeaders should return token as Authorization header', (t) => {
   const authentication = {
     status: 'granted',
     token: 't0k3n',
-    expire: Date.now() + 3600000
+    expire: Date.now() + 3600000,
   }
   const expected = {
-    Authorization: 'Bearer t0k3n'
+    Authorization: 'Bearer t0k3n',
   }
 
   const ret = authenticator.asHttpHeaders(authentication)
@@ -64,7 +76,7 @@ test('asHttpHeaders should return empty object when not authenticated', (t) => {
   const authentication = {
     status: 'granted',
     token: 't0k3n',
-    expire: Date.now() - 3600000
+    expire: Date.now() - 3600000,
   }
   const expected = {}
 
@@ -77,10 +89,10 @@ test('asHttpHeaders should support unbinded call to function', (t) => {
   const authentication = {
     status: 'granted',
     token: 't0k3n',
-    expire: Date.now() + 3600000
+    expire: Date.now() + 3600000,
   }
   const expected = {
-    Authorization: 'Bearer t0k3n'
+    Authorization: 'Bearer t0k3n',
   }
   const { asHttpHeaders } = authenticator
 

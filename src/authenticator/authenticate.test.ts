@@ -5,20 +5,21 @@ import authenticate from './authenticate'
 
 // Setup
 
-const expectedRequest = 'grant_type=refresh_token&client_id=client1&client_secret=s3cr3t&' +
+const expectedRequest =
+  'grant_type=refresh_token&client_id=client1&client_secret=s3cr3t&' +
   'redirect_uri=https%3A%2F%2Fredirect.com%2Fhere&refresh_token=r3fr3sh'
 
 const setupNock = (baseUri: string) => {
   return nock(baseUri, {
     reqheaders: {
-      'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
-    }
+      'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+    },
   })
     .post('/token', expectedRequest)
     .reply(200, {
       refresh_token: 'r3fr3sh',
       access_token: 't0k3n',
-      expires_in: 21600
+      expires_in: 21600,
     })
 }
 
@@ -35,7 +36,7 @@ test('should authenticate', async (t) => {
     clientId: 'client1',
     clientSecret: 's3cr3t',
     redirectUri: 'https://redirect.com/here',
-    refreshToken: 'r3fr3sh'
+    refreshToken: 'r3fr3sh',
   }
   const expectedExpire = Date.now() + 21600000
 
@@ -58,18 +59,16 @@ test('should not authenticate with missing options', async (t) => {
 })
 
 test('should return refused on authentication error', async (t) => {
-  const scope = nock('https://api2.test')
-    .post('/token')
-    .reply(400, {
-      error: '400',
-      error_description: 'Awful error'
-    })
+  const scope = nock('https://api2.test').post('/token').reply(400, {
+    error: '400',
+    error_description: 'Awful error',
+  })
   const options = {
     apiUri: 'https://api2.test/token',
     clientId: 'client1',
     clientSecret: 's3cr3t',
     redirectUri: 'https://redirect.com/here',
-    refreshToken: 'r3fr3sh'
+    refreshToken: 'r3fr3sh',
   }
 
   const ret = await authenticate(options)
@@ -79,15 +78,13 @@ test('should return refused on authentication error', async (t) => {
 })
 
 test('should return error when apiUrl not found', async (t) => {
-  const scope = nock('https://api3.test')
-    .post('/token')
-    .reply(404)
+  const scope = nock('https://api3.test').post('/token').reply(404)
   const options = {
     apiUri: 'https://api3.test/token',
     clientId: 'client1',
     clientSecret: 's3cr3t',
     redirectUri: 'https://redirect.com/here',
-    refreshToken: 'r3fr3sh'
+    refreshToken: 'r3fr3sh',
   }
 
   const ret = await authenticate(options)
@@ -98,15 +95,13 @@ test('should return error when apiUrl not found', async (t) => {
 })
 
 test('should return error when json response is not valid', async (t) => {
-  const scope = nock('https://api4.test')
-    .post('/token')
-    .reply(200)
+  const scope = nock('https://api4.test').post('/token').reply(200)
   const options = {
     apiUri: 'https://api4.test/token',
     clientId: 'client1',
     clientSecret: 's3cr3t',
     redirectUri: 'https://redirect.com/here',
-    refreshToken: 'r3fr3sh'
+    refreshToken: 'r3fr3sh',
   }
 
   const ret = await authenticate(options)
