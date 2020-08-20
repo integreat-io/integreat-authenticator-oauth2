@@ -62,6 +62,26 @@ const resources = integreat.mergeResources(
 const great = integreat(defs, resources)
 ```
 
+An auth def with the client credentials grant type could look like this:
+
+```javascript
+const def = {
+  auths: {
+    id: 'service-oauth2',
+    authenticator: 'oauth2',
+    options: {
+      grantType: 'clientCredential',
+      uri: 'https://api.service.test/oauth/v1/token',
+      key: 'client1',
+      secret: 's3cr3t',
+    },
+  },
+}
+```
+
+Both grant types may include a `scope` options, which is a space delimited
+string of scope keywords, defined by the targeted service.
+
 ### Running the tests
 
 The tests can be run with `npm test`.

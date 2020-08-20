@@ -9,20 +9,24 @@ interface Data {
 interface Response {
   status: string
   error?: string
-  data?: Data
 }
 
 const { form: formAdapter } = form.adapters
 
-const validOptions = (options: Options) =>
+const base64Auth = (key: string, secret: string) =>
+  Buffer.from(`${key}:${secret}`).toString('base64')
+
+const isValidOptions = (options: Options): boolean =>
   !!(
+    options &&
+    options.uri &&
     options.key &&
     options.secret &&
-    options.redirectUri &&
-    options.refreshToken &&
-    options.uri
+    ((options.grantType === 'refreshToken' &&
+      options.redirectUri &&
+      options.refreshToken) ||
+      options.grantType === 'clientCredentials')
   )
-
 const parseData = (data: string) => {
   try {
     return JSON.parse(data)
@@ -50,27 +54,45 @@ const createResponse = ({ status, error }: Response, data: Data) =>
     ? createResponseFromData(status, data)
     : createResponseFromError(status, error)
 
+const getData = (options: Options) =>
+  options.grantType === 'refreshToken'
+    ? {
+        grant_type: 'refresh_token',
+        client_id: options.key,
+        client_secret: options.secret,
+        redirect_uri: options.redirectUri,
+        refresh_token: options.refreshToken,
+      }
+    : {
+        grant_type: 'client_credentials',
+      }
+
+const getHeaders = (options: Options): Record<string, string> =>
+  options.grantType === 'clientCredentials'
+    ? {
+        Authorization: `Basic ${base64Auth(options.key, options.secret)}`,
+      }
+    : {}
+
 export default async function authenticate(
   options: Options
 ): Promise<Authentication> {
-  if (!validOptions(options)) {
+  if (!isValidOptions(options)) {
     return { status: 'error', error: 'Missing props on options object' }
   }
 
   const request = {
     method: 'QUERY',
     data: {
-      grant_type: 'refresh_token',
-      client_id: options.key,
-      client_secret: options.secret,
-      redirect_uri: options.redirectUri,
-      refresh_token: options.refreshToken,
+      ...getData(options),
+      ...(options.scope ? { scope: options.scope } : {}),
     },
+    headers: getHeaders(options),
     endpoint: { uri: options.uri as string },
   }
 
   const response = await formAdapter.send(await formAdapter.serialize(request))
 
-  const data = parseData(response.data)
+  const data = parseData(response.data as string)
   return createResponse(response, data)
 }

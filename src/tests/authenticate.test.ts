@@ -20,6 +20,7 @@ test('should authenticate', async (t) => {
       expires_in: 21600,
     })
   const options = {
+    grantType: 'refreshToken' as const,
     uri: 'https://api1.test/token',
     key: 'client1',
     secret: 's3cr3t',

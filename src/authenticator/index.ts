@@ -7,13 +7,25 @@ export interface Authentication {
   error?: string
 }
 
-export interface Options {
-  uri?: string
-  key?: string
-  secret?: string
-  redirectUri?: string
-  refreshToken?: string
+export interface RefreshOptions {
+  grantType: 'refreshToken'
+  uri: string
+  key: string
+  secret: string
+  redirectUri: string
+  refreshToken: string
+  scope?: string
 }
+
+export interface ClientOptions {
+  grantType: 'clientCredentials'
+  uri: string
+  key: string
+  secret: string
+  scope?: string
+}
+
+export type Options = RefreshOptions | ClientOptions
 
 export interface TokenObject {
   token?: string
