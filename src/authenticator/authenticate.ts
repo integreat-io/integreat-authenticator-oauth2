@@ -16,11 +16,11 @@ const { form: formAdapter } = form.adapters
 
 const validOptions = (options: Options) =>
   !!(
-    options.clientId &&
-    options.clientSecret &&
+    options.key &&
+    options.secret &&
     options.redirectUri &&
     options.refreshToken &&
-    options.apiUri
+    options.uri
   )
 
 const parseData = (data: string) => {
@@ -61,12 +61,12 @@ export default async function authenticate(
     method: 'QUERY',
     data: {
       grant_type: 'refresh_token',
-      client_id: options.clientId,
-      client_secret: options.clientSecret,
+      client_id: options.key,
+      client_secret: options.secret,
       redirect_uri: options.redirectUri,
       refresh_token: options.refreshToken,
     },
-    endpoint: { uri: options.apiUri as string },
+    endpoint: { uri: options.uri as string },
   }
 
   const response = await formAdapter.send(await formAdapter.serialize(request))

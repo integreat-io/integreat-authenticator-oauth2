@@ -32,9 +32,9 @@ test.after.always(() => {
 test('should authenticate', async (t) => {
   const scope = setupNock('https://api1.test')
   const options = {
-    apiUri: 'https://api1.test/token',
-    clientId: 'client1',
-    clientSecret: 's3cr3t',
+    uri: 'https://api1.test/token',
+    key: 'client1',
+    secret: 's3cr3t',
     redirectUri: 'https://redirect.com/here',
     refreshToken: 'r3fr3sh',
   }
@@ -64,9 +64,9 @@ test('should return refused on authentication error', async (t) => {
     error_description: 'Awful error',
   })
   const options = {
-    apiUri: 'https://api2.test/token',
-    clientId: 'client1',
-    clientSecret: 's3cr3t',
+    uri: 'https://api2.test/token',
+    key: 'client1',
+    secret: 's3cr3t',
     redirectUri: 'https://redirect.com/here',
     refreshToken: 'r3fr3sh',
   }
@@ -80,9 +80,9 @@ test('should return refused on authentication error', async (t) => {
 test('should return error when apiUrl not found', async (t) => {
   const scope = nock('https://api3.test').post('/token').reply(404)
   const options = {
-    apiUri: 'https://api3.test/token',
-    clientId: 'client1',
-    clientSecret: 's3cr3t',
+    uri: 'https://api3.test/token',
+    key: 'client1',
+    secret: 's3cr3t',
     redirectUri: 'https://redirect.com/here',
     refreshToken: 'r3fr3sh',
   }
@@ -97,9 +97,9 @@ test('should return error when apiUrl not found', async (t) => {
 test('should return error when json response is not valid', async (t) => {
   const scope = nock('https://api4.test').post('/token').reply(200)
   const options = {
-    apiUri: 'https://api4.test/token',
-    clientId: 'client1',
-    clientSecret: 's3cr3t',
+    uri: 'https://api4.test/token',
+    key: 'client1',
+    secret: 's3cr3t',
     redirectUri: 'https://redirect.com/here',
     refreshToken: 'r3fr3sh',
   }

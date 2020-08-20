@@ -8,9 +8,9 @@ export interface Authentication {
 }
 
 export interface Options {
-  apiUri?: string
-  clientId?: string
-  clientSecret?: string
+  uri?: string
+  key?: string
+  secret?: string
   redirectUri?: string
   refreshToken?: string
 }

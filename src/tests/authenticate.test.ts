@@ -5,25 +5,26 @@ import resources from '..'
 const { oauth2 } = resources.authenticators
 
 test('should authenticate', async (t) => {
-  const expectedRequest = 'grant_type=refresh_token&client_id=client1&client_secret=s3cr3t&' +
+  const expectedRequest =
+    'grant_type=refresh_token&client_id=client1&client_secret=s3cr3t&' +
     'redirect_uri=https%3A%2F%2Fredirect.com%2Fhere&refresh_token=r3fr3sh'
   const scope = nock('https://api1.test', {
     reqheaders: {
-      'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
-    }
+      'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+    },
   })
     .post('/token', expectedRequest)
     .reply(200, {
       refresh_token: 'r3fr3sh',
       access_token: 't0k3n',
-      expires_in: 21600
+      expires_in: 21600,
     })
   const options = {
-    apiUri: 'https://api1.test/token',
-    clientId: 'client1',
-    clientSecret: 's3cr3t',
+    uri: 'https://api1.test/token',
+    key: 'client1',
+    secret: 's3cr3t',
     redirectUri: 'https://redirect.com/here',
-    refreshToken: 'r3fr3sh'
+    refreshToken: 'r3fr3sh',
   }
   const authentication = null
 
