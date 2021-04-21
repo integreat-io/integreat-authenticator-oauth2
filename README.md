@@ -1,7 +1,8 @@
 # OAuth 2.0 authenticator for Integreat
 
-Makes Integreat handle authentication with an OAuth 2.0 service. Supports two
-grant types: client credentials and refresh token.
+Makes Integreat handle authentication with an OAuth 2.0 service. Supports three
+grant types: client credentials, refresh token, and assertion with self-signed
+JWT token.
 
 [![npm Version](https://img.shields.io/npm/v/integreat-authenticator-oauth2.svg)](https://www.npmjs.com/package/integreat-authenticator-oauth2)
 [![Build Status](https://travis-ci.org/integreat-io/integreat-authenticator-oauth2.svg?branch=master)](https://travis-ci.org/integreat-io/integreat-authenticator-oauth2)
@@ -54,7 +55,7 @@ const defs = {
 }
 
 const resources = integreat.mergeResources(
-  integreat.resources,
+  integreat.resources(),
   oauth2,
   { /* your other resources */ },
 })
@@ -79,7 +80,28 @@ const def = {
 }
 ```
 
-Both grant types may include a `scope` options, which is a space delimited
+An auth def with the client credentials grant type could look like this:
+
+```javascript
+const def = {
+  auths: {
+    id: 'service-oauth2',
+    authenticator: 'oauth2',
+    options: {
+      grantType: 'jwtAssertion',
+      uri: 'https://api.service.test/oauth/v1/token',
+      key: 'client1',
+      secret: privateKey, // In case of RS256, this needs to be the complete private key file
+      scope: 'all',
+      audience: 'https://api.service.test/oauth/v1/token',
+      algorithm: 'RS256',
+      expiresIn: 3600,
+    },
+  },
+}
+```
+
+All grant types may include a `scope` options, which is a space delimited
 string of scope keywords, defined by the targeted service.
 
 ### Running the tests

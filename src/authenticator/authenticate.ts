@@ -1,5 +1,6 @@
 import { Options, Authentication } from '.'
 import form from 'integreat-adapter-form'
+import signJwt from './signJwt'
 
 interface Data {
   access_token: string
@@ -25,7 +26,8 @@ const isValidOptions = (options: Options): boolean =>
     ((options.grantType === 'refreshToken' &&
       options.redirectUri &&
       options.refreshToken) ||
-      options.grantType === 'clientCredentials')
+      options.grantType === 'clientCredentials' ||
+      options.grantType === 'jwtAssertion')
   )
 const parseData = (data: string) => {
   try {
@@ -62,6 +64,11 @@ const getData = (options: Options) =>
         client_secret: options.secret,
         redirect_uri: options.redirectUri,
         refresh_token: options.refreshToken,
+      }
+    : options.grantType === 'jwtAssertion'
+    ? {
+        grantType: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+        assertion: signJwt(options),
       }
     : {
         grant_type: 'client_credentials',

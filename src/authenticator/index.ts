@@ -25,7 +25,18 @@ export interface ClientOptions {
   scope?: string
 }
 
-export type Options = RefreshOptions | ClientOptions
+export interface JwtAssertionOptions {
+  grantType: 'jwtAssertion'
+  uri: string
+  key: string
+  secret: string
+  scope?: string
+  audience?: string
+  algorithm?: 'HS256' | 'RS256'
+  expiresIn?: number
+}
+
+export type Options = RefreshOptions | ClientOptions | JwtAssertionOptions
 
 export interface TokenObject {
   token?: string
