@@ -17,7 +17,7 @@ const { form: formAdapter } = form.adapters
 const base64Auth = (key: string, secret: string) =>
   Buffer.from(`${key}:${secret}`).toString('base64')
 
-const isValidOptions = (options: Options): boolean =>
+const isValidOptions = (options: Partial<Options> | null): options is Options =>
   !!(
     options &&
     options.uri &&
@@ -82,7 +82,7 @@ const getHeaders = (options: Options): Record<string, string> =>
     : {}
 
 export default async function authenticate(
-  options: Options
+  options: Partial<Options> | null
 ): Promise<Authentication> {
   if (!isValidOptions(options)) {
     return { status: 'error', error: 'Missing props on options object' }

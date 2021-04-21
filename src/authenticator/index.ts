@@ -1,10 +1,22 @@
 import authenticate from './authenticate'
 
-export interface Authentication {
+export type AuthOptions = Record<string, unknown>
+
+export interface Authentication extends AuthOptions {
   status: string
   token?: string
   expire?: number
   error?: string
+}
+
+export interface Authenticator {
+  authenticate: (options: AuthOptions | null) => Promise<Authentication>
+  isAuthenticated: (authentication: Authentication | null) => boolean
+  authentication: {
+    [asFunction: string]: (
+      authentication: Authentication | null
+    ) => Record<string, unknown>
+  }
 }
 
 export interface RefreshOptions {
@@ -38,15 +50,17 @@ export interface JwtAssertionOptions {
 
 export type Options = RefreshOptions | ClientOptions | JwtAssertionOptions
 
-export interface TokenObject {
+export interface TokenObject extends Record<string, unknown> {
   token?: string
 }
 
-export interface HttpHeaders {
+export interface HttpHeaders extends Record<string, unknown> {
   Authorization?: string
 }
 
-function isAuthenticated(authentication: Authentication | null): boolean {
+function isAuthenticated(
+  authentication: Authentication | null
+): authentication is Authentication {
   if (!authentication) {
     return false
   }
@@ -58,20 +72,24 @@ function isAuthenticated(authentication: Authentication | null): boolean {
   )
 }
 
-export default {
+const oauth2: Authenticator = {
   authenticate,
 
   isAuthenticated,
 
-  asObject(authentication: Authentication): TokenObject {
-    return isAuthenticated(authentication)
-      ? { token: authentication.token }
-      : {}
-  },
+  authentication: {
+    asObject(authentication: Authentication | null): TokenObject {
+      return isAuthenticated(authentication)
+        ? { token: authentication.token }
+        : {}
+    },
 
-  asHttpHeaders(authentication: Authentication): HttpHeaders {
-    return isAuthenticated(authentication)
-      ? { Authorization: `Bearer ${authentication.token}` }
-      : {}
+    asHttpHeaders(authentication: Authentication | null): HttpHeaders {
+      return isAuthenticated(authentication)
+        ? { Authorization: `Bearer ${authentication.token}` }
+        : {}
+    },
   },
 }
+
+export default oauth2

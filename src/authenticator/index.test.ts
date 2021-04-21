@@ -39,7 +39,7 @@ test('asObject should return token', (t) => {
     token: 't0k3n',
   }
 
-  const ret = authenticator.asObject(authentication)
+  const ret = authenticator.authentication.asObject(authentication)
 
   t.deepEqual(ret, expected)
 })
@@ -52,7 +52,7 @@ test('asObject should return empty object when not authenticated', (t) => {
   }
   const expected = {}
 
-  const ret = authenticator.asObject(authentication)
+  const ret = authenticator.authentication.asObject(authentication)
 
   t.deepEqual(ret, expected)
 })
@@ -67,7 +67,7 @@ test('asHttpHeaders should return token as Authorization header', (t) => {
     Authorization: 'Bearer t0k3n',
   }
 
-  const ret = authenticator.asHttpHeaders(authentication)
+  const ret = authenticator.authentication.asHttpHeaders(authentication)
 
   t.deepEqual(ret, expected)
 })
@@ -80,7 +80,7 @@ test('asHttpHeaders should return empty object when not authenticated', (t) => {
   }
   const expected = {}
 
-  const ret = authenticator.asHttpHeaders(authentication)
+  const ret = authenticator.authentication.asHttpHeaders(authentication)
 
   t.deepEqual(ret, expected)
 })
@@ -94,7 +94,7 @@ test('asHttpHeaders should support unbinded call to function', (t) => {
   const expected = {
     Authorization: 'Bearer t0k3n',
   }
-  const { asHttpHeaders } = authenticator
+  const { asHttpHeaders } = authenticator.authentication
 
   const ret = asHttpHeaders(authentication)
 

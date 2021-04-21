@@ -13,7 +13,7 @@ JWT token.
 
 ### Prerequisits
 
-Requires node v10 and Integreat v0.7.
+Requires node v10 and Integreat v0.8.
 
 ### Installing and using
 
