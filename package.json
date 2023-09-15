@@ -1,6 +1,6 @@
 {
   "name": "integreat-authenticator-oauth2",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "description": "OAuth 2.0 authenticator for Integreat",
   "author": "Kjell-Morten Bratsberg Thorsen <kjellmorten@integreat.io>",
   "license": "ISC",
