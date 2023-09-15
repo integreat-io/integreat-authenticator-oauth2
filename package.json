@@ -35,7 +35,7 @@
   "dependencies": {
     "@types/jsonwebtoken": "^8.5.1",
     "integreat-adapter-form": "^0.3.0",
-    "jsonwebtoken": "^8.5.1"
+    "jsonwebtoken": "^9.0.0"
   },
   "devDependencies": {
     "@integreat/ts-dev-setup": "^1.2.1",
