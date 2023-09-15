@@ -1,9 +1,7 @@
 import test from 'ava'
 import nock from 'nock'
 
-import resources from '../index.js'
-
-const { oauth2 } = resources.authenticators
+import authenticator from '../index.js'
 
 test('should authenticate', async (t) => {
   const expectedRequest =
@@ -30,9 +28,9 @@ test('should authenticate', async (t) => {
   }
   const authentication = null
 
-  const isAuth1 = oauth2.isAuthenticated(authentication)
-  const ret = await oauth2.authenticate(options)
-  const isAuth2 = oauth2.isAuthenticated(ret)
+  const isAuth1 = authenticator.isAuthenticated(authentication)
+  const ret = await authenticator.authenticate(options)
+  const isAuth2 = authenticator.isAuthenticated(ret)
 
   t.false(isAuth1)
   t.is(ret.status, 'granted')

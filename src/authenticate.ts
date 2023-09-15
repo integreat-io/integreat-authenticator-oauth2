@@ -1,6 +1,6 @@
 import form from 'integreat-adapter-form'
 import signJwt from './signJwt.js'
-import type { Options, Authentication } from './index.js'
+import type { Options, Authentication } from './types.js'
 
 interface Data {
   access_token: string
@@ -82,7 +82,7 @@ const getHeaders = (options: Options): Record<string, string> =>
     : {}
 
 export default async function authenticate(
-  options: Partial<Options> | null
+  options: Partial<Options> | null,
 ): Promise<Authentication> {
   if (!isValidOptions(options)) {
     return { status: 'error', error: 'Missing props on options object' }

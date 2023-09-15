@@ -1,7 +1,7 @@
 import test from 'ava'
 import nock from 'nock'
 import jwt from 'jsonwebtoken'
-import type { Options } from './index.js'
+import type { Options } from './types.js'
 
 import authenticate from './authenticate.js'
 
@@ -75,7 +75,7 @@ const setupNock = (uri: string, type = 'refresh', includeScope = false) => {
         ? expectedClientRequest
         : type === 'jwtAssertion'
         ? expectedJwtAssertionRequest
-        : expectedRefreshRequest) + (includeScope ? '&scope=public-api' : '')
+        : expectedRefreshRequest) + (includeScope ? '&scope=public-api' : ''),
     )
     .reply(
       200,
@@ -83,7 +83,7 @@ const setupNock = (uri: string, type = 'refresh', includeScope = false) => {
         ? clientResponse
         : type === 'jwtAssertion'
         ? jwtAssertionResponse
-        : refreshResponse
+        : refreshResponse,
     )
 }
 
