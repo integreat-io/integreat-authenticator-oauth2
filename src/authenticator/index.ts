@@ -1,4 +1,4 @@
-import authenticate from './authenticate'
+import authenticate from './authenticate.js'
 
 export type AuthOptions = Record<string, unknown>
 

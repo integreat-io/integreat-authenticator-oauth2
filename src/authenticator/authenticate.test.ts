@@ -1,9 +1,9 @@
 import test from 'ava'
-import nock = require('nock')
-import jwt = require('jsonwebtoken')
-import { Options } from '.'
+import nock from 'nock'
+import jwt from 'jsonwebtoken'
+import type { Options } from './index.js'
 
-import authenticate from './authenticate'
+import authenticate from './authenticate.js'
 
 interface JwtAssertionBody {
   grantType: string

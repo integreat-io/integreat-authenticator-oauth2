@@ -1,6 +1,6 @@
-import oauth2 from './authenticator'
+import oauth2 from './authenticator/index.js'
 
-export = {
+export default {
   authenticators: {
     oauth2
   },

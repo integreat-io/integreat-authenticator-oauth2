@@ -1,7 +1,7 @@
 import test from 'ava'
-import jwt = require('jsonwebtoken')
+import jwt from 'jsonwebtoken'
 
-import signJwt from './signJwt'
+import signJwt from './signJwt.js'
 
 // Setup
 

@@ -1,6 +1,6 @@
-import { Options, Authentication } from '.'
 import form from 'integreat-adapter-form'
-import signJwt from './signJwt'
+import signJwt from './signJwt.js'
+import type { Options, Authentication } from './index.js'
 
 interface Data {
   access_token: string

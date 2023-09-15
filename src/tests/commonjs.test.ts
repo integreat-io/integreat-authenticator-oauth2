@@ -1,6 +1,6 @@
 import test from 'ava'
 
-import resources = require('..')
+import resources from '../index.js'
 
 test('should have resources', (t) => {
   t.truthy(resources)

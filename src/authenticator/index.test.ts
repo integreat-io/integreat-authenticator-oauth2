@@ -1,6 +1,6 @@
 import test from 'ava'
 
-import authenticator from '.'
+import authenticator from './index.js'
 
 test('isAuthenticated should recognize authentications', (t) => {
   const authenticated = {

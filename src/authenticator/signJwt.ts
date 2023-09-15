@@ -1,5 +1,5 @@
-import jwt = require('jsonwebtoken')
-import { JwtAssertionOptions } from '.'
+import jwt from 'jsonwebtoken'
+import type { JwtAssertionOptions } from './index.js'
 
 export default function signJwt(options: JwtAssertionOptions): string | null {
   const {

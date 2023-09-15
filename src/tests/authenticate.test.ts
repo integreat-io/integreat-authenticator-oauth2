@@ -1,7 +1,8 @@
 import test from 'ava'
-import nock = require('nock')
+import nock from 'nock'
 
-import resources from '..'
+import resources from '../index.js'
+
 const { oauth2 } = resources.authenticators
 
 test('should authenticate', async (t) => {
