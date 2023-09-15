@@ -5,15 +5,13 @@ grant types: client credentials, refresh token, and assertion with self-signed
 JWT token.
 
 [![npm Version](https://img.shields.io/npm/v/integreat-authenticator-oauth2.svg)](https://www.npmjs.com/package/integreat-authenticator-oauth2)
-[![Build Status](https://travis-ci.org/integreat-io/integreat-authenticator-oauth2.svg?branch=master)](https://travis-ci.org/integreat-io/integreat-authenticator-oauth2)
-[![Coverage Status](https://coveralls.io/repos/github/integreat-io/integreat-authenticator-oauth2/badge.svg?branch=master)](https://coveralls.io/github/integreat-io/integreat-authenticator-oauth2?branch=master)
 [![Maintainability](https://api.codeclimate.com/v1/badges/6331723a6ff61de5f232/maintainability)](https://codeclimate.com/github/integreat-io/integreat-authenticator-oauth2/maintainability)
 
 ## Getting started
 
 ### Prerequisits
 
-Requires node v10 and Integreat v0.8.
+Requires node v18 and Integreat v1.0.
 
 ### Installing and using
 
@@ -26,8 +24,8 @@ npm install integreat-authenticator-oauth2
 Example setup with refresh token grant type:
 
 ```javascript
-import integreat from 'integreat'
-import oauth2 from 'integreat-authenticator-oauth2')
+import Integreat from 'integreat'
+import oauth2 from 'integreat-authenticator-oauth2'
 
 const defs = {
   auths: {
@@ -46,21 +44,22 @@ const defs = {
   services: [
     {
       id: 'service-with-oauth2',
-      adapter: 'json',
+      transporter: 'http',
+      adapters: ['json'],
       auth: 'service-oauth2',
       endpoints: [ /* your endpoints */ ],
-      mappings: { /* your mapping */ },
     },
   ],
 }
 
-const resources = integreat.mergeResources(
-  integreat.resources(),
-  oauth2,
-  { /* your other resources */ },
-})
+const resources = {
+  authenticators: {
+    oauth2,
+  },
+  /* your other resources */,
+}
 
-const great = integreat(defs, resources)
+const great = Integreat.create(defs, resources)
 ```
 
 An auth def with the client credentials grant type could look like this:
