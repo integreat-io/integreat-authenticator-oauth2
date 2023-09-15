@@ -38,7 +38,7 @@
     "jsonwebtoken": "^8.5.1"
   },
   "devDependencies": {
-    "@integreat/ts-dev-setup": "^1.2.1",
+    "@integreat/ts-dev-setup": "^5.0.0",
     "nock": "^13.0.11"
   }
 }
