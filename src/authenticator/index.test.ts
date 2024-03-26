@@ -72,6 +72,38 @@ test('asHttpHeaders should return token as Authorization header', (t) => {
   t.deepEqual(ret, expected)
 })
 
+test('asHttpHeaders should return token as Authorization header with other token type', (t) => {
+  const authentication = {
+    status: 'granted',
+    token: 't0k3n',
+    type: 'Basic',
+    expire: Date.now() + 3600000,
+  }
+  const expected = {
+    Authorization: 'Basic t0k3n',
+  }
+
+  const ret = authenticator.asHttpHeaders(authentication)
+
+  t.deepEqual(ret, expected)
+})
+
+test('asHttpHeaders should return token as Authorization header with no token type', (t) => {
+  const authentication = {
+    status: 'granted',
+    token: 't0k3n',
+    type: null,
+    expire: Date.now() + 3600000,
+  }
+  const expected = {
+    Authorization: 't0k3n',
+  }
+
+  const ret = authenticator.asHttpHeaders(authentication)
+
+  t.deepEqual(ret, expected)
+})
+
 test('asHttpHeaders should return empty object when not authenticated', (t) => {
   const authentication = {
     status: 'granted',

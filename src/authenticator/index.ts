@@ -3,6 +3,7 @@ import authenticate from './authenticate'
 export interface Authentication {
   status: string
   token?: string
+  type?: string | null
   expire?: number
   error?: string
 }
@@ -36,7 +37,9 @@ export interface JwtAssertionOptions {
   expiresIn?: number
 }
 
-export type Options = RefreshOptions | ClientOptions | JwtAssertionOptions
+export type Options = (RefreshOptions | ClientOptions | JwtAssertionOptions) & {
+  type?: string | null
+}
 
 export interface TokenObject {
   token?: string
@@ -70,8 +73,16 @@ export default {
   },
 
   asHttpHeaders(authentication: Authentication): HttpHeaders {
-    return isAuthenticated(authentication)
-      ? { Authorization: `Bearer ${authentication.token}` }
-      : {}
+    if (isAuthenticated(authentication)) {
+      const type =
+        authentication.type === undefined ? 'Bearer' : authentication.type
+      return {
+        Authorization: type
+          ? `${type} ${authentication.token}`
+          : authentication.token,
+      }
+    } else {
+      return {}
+    }
   },
 }

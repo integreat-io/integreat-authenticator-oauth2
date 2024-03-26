@@ -1,7 +1,7 @@
 import test from 'ava'
 import nock = require('nock')
 import jwt = require('jsonwebtoken')
-import { Options } from '.'
+import type { Options } from '.'
 
 import authenticate from './authenticate'
 
@@ -180,6 +180,23 @@ test('should include scope in grant request', async (t) => {
   t.true((ret.expire as number) >= expectedExpire)
   t.true((ret.expire as number) < expectedExpire + 1000)
   t.true(scope.isDone())
+})
+
+test('should include type in authentication', async (t) => {
+  setupNock('https://api8.test', 'client')
+  const options = {
+    grantType: 'clientCredentials' as const,
+    uri: 'https://api8.test/token',
+    key: 'client1',
+    secret: 's3cr3t',
+    type: 'Basic',
+  }
+
+  const ret = await authenticate(options)
+
+  t.is(ret.status, 'granted', ret.error)
+  t.is(ret.token, externalJwt)
+  t.is(ret.type, 'Basic')
 })
 
 test('should not authenticate with missing options', async (t) => {

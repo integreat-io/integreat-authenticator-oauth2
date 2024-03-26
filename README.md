@@ -58,7 +58,7 @@ const resources = integreat.mergeResources(
   integreat.resources(),
   oauth2,
   { /* your other resources */ },
-})
+)
 
 const great = integreat(defs, resources)
 ```
@@ -103,6 +103,10 @@ const def = {
 
 All grant types may include a `scope` options, which is a space delimited
 string of scope keywords, defined by the targeted service.
+
+**For version 0.2.2 only:** Provide a custom authentication header type with the
+`type` option. Default is `'Bearer'`. Set to `null` to have no type. Will be
+properly implemented in a later version.
 
 ### Running the tests
 

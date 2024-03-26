@@ -37,12 +37,17 @@ const parseData = (data: string) => {
   }
 }
 
-const createResponseFromData = (status: string, data: Data) =>
+const createResponseFromData = (
+  status: string,
+  data: Data,
+  type?: string | null
+) =>
   status === 'ok'
     ? {
         status: 'granted',
         token: data.access_token,
         expire: Date.now() + data.expires_in * 1000,
+        type,
       }
     : { status: 'refused' }
 
@@ -51,9 +56,13 @@ const createResponseFromError = (status: string, error?: string) => ({
   error: status === 'ok' ? 'Invalid json response' : error,
 })
 
-const createResponse = ({ status, error }: Response, data: Data) =>
+const createResponse = (
+  { status, error }: Response,
+  data: Data,
+  type?: string | null
+) =>
   data
-    ? createResponseFromData(status, data)
+    ? createResponseFromData(status, data, type)
     : createResponseFromError(status, error)
 
 const getData = (options: Options) =>
@@ -101,5 +110,5 @@ export default async function authenticate(
   const response = await formAdapter.send(await formAdapter.serialize(request))
 
   const data = parseData(response.data as string)
-  return createResponse(response, data)
+  return createResponse(response, data, options.type)
 }
