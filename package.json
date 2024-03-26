@@ -12,13 +12,11 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "test": "npm run build && nyc --reporter=text-summary ava --config ./ava-dist.config.js",
-    "test:inspect": "node --inspect node_modules/ava/profile.js",
+    "test": "npm run lint && npm run build && c8 --reporter=text-summary ava --config ./ava-dist.config.cjs",
     "test:watch": "npm run dev",
     "dev": "ava --watch",
     "build": "tsc",
-    "coverage": "nyc report --reporter=text-lcov | coveralls",
-    "nyc:report": "nyc report --reporter=text --reporter=html",
+    "coverage": "c8 report",
     "lint": "eslint --ext .ts src"
   },
   "repository": {
@@ -33,12 +31,12 @@
     "node": ">= 10"
   },
   "dependencies": {
-    "@types/jsonwebtoken": "^8.5.1",
+    "@types/jsonwebtoken": "^8.5.9",
     "integreat-adapter-form": "^0.3.0",
     "jsonwebtoken": "^8.5.1"
   },
   "devDependencies": {
-    "@integreat/ts-dev-setup": "^1.2.1",
-    "nock": "^13.0.11"
+    "@integreat/ts-dev-setup": "~4.0.1",
+    "nock": "^13.5.4"
   }
 }
