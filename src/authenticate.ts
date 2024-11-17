@@ -143,6 +143,7 @@ export default async function authenticate(
         status: 'granted',
         token: data.access_token,
         expire: Date.now() + data.expires_in * 1000,
+        type: options.authHeaderType,
         ...(data.refresh_token ? { refreshToken: data.refresh_token } : {}),
       }
     } else {

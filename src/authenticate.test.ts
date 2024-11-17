@@ -73,6 +73,7 @@ test('should authenticate with authorization code', async (t) => {
     secret: 's3cr3t',
     redirectUri: 'https://redirect.com/here',
     code: '4Uthc0d3',
+    authHeaderType: 'Basic',
   }
   const expectedExpire = Date.now() + 21600000
 
@@ -82,6 +83,7 @@ test('should authenticate with authorization code', async (t) => {
   t.is(ret.token, 't0k3n')
   t.true((ret.expire as number) >= expectedExpire)
   t.true((ret.expire as number) < expectedExpire + 1000)
+  t.is(ret.type, 'Basic') // Verify that this is passed on from options
   t.true(scope.isDone())
 })
 
@@ -107,6 +109,7 @@ test('should authenticate with refresh token', async (t) => {
     secret: 's3cr3t',
     redirectUri: 'https://redirect.com/here',
     refreshToken: 'r3fr3sh',
+    authHeaderType: '',
   }
   const expectedExpire = Date.now() + 21600000
 
@@ -117,6 +120,7 @@ test('should authenticate with refresh token', async (t) => {
   t.is(ret.refreshToken, 'r4fr4sh')
   t.true((ret.expire as number) >= expectedExpire)
   t.true((ret.expire as number) < expectedExpire + 1000)
+  t.is(ret.type, '') // Verify that this is passed on from options
   t.true(scope.isDone())
 })
 
@@ -158,6 +162,7 @@ test('should authenticate with refresh token when authorization code and refresh
   t.is(ret.refreshToken, 'r4fr4sh')
   t.true((ret.expire as number) >= expectedExpire)
   t.true((ret.expire as number) < expectedExpire + 1000)
+  t.is(ret.type, undefined) // Verify that this is passed on from options
   t.true(scope.isDone())
 })
 

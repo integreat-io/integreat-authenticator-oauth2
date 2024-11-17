@@ -36,8 +36,14 @@ const oauth2: Authenticator<Authentication, Options> = {
     },
 
     asHttpHeaders(authentication: Authentication | null): HttpHeaders {
+      const type =
+        authentication?.type === undefined ? 'Bearer' : authentication.type
       return isAuthenticated(authentication, null, null)
-        ? { Authorization: `Bearer ${authentication.token}` }
+        ? {
+            Authorization: type
+              ? `${type} ${authentication.token}`
+              : authentication.token, // No auth type or empty string
+          }
         : {}
     },
   },

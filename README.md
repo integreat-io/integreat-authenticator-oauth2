@@ -122,6 +122,11 @@ const def = {
 All grant types may include a `scope` options, which is a space delimited
 string of scope keywords, defined by the targeted service.
 
+By default, `Authorization` headers should be of type `Bearer` for OAuth2, but
+some APIs may still have their custom way of doing it. To override what auth
+type to use, set `authHeaderType` to whatever you need it to be. Use an empty
+string to have no auth type at all (the token will be the value of the header).
+
 ### Running the tests
 
 The tests can be run with `npm test`.

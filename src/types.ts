@@ -6,6 +6,7 @@ import type {
 export interface Authentication extends BaseAuthentication {
   token?: string
   refreshToken?: string
+  type?: string
 }
 
 export interface AuthCodeOptions {
@@ -47,8 +48,12 @@ export interface JwtAssertionOptions {
   expiresIn?: number
 }
 
-export type Options = AuthOptions &
-  (AuthCodeOptions | RefreshOptions | ClientOptions | JwtAssertionOptions)
+export type Options = AuthOptions & { authHeaderType?: string } & (
+    | AuthCodeOptions
+    | RefreshOptions
+    | ClientOptions
+    | JwtAssertionOptions
+  )
 
 export interface TokenObject extends Record<string, unknown> {
   token?: string
