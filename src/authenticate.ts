@@ -22,6 +22,9 @@ const isValidOptions = (options: Partial<Options> | null): options is Options =>
     ((options.grantType === 'refreshToken' &&
       options.redirectUri &&
       options.refreshToken) ||
+      (options.grantType === 'authorization_code' &&
+        options.redirectUri &&
+        options.code) ||
       options.grantType === 'clientCredentials' ||
       options.grantType === 'jwtAssertion')
   )
@@ -34,23 +37,35 @@ async function parseData(response: Response): Promise<ResponseData | null> {
   }
 }
 
-const getData = (options: Options) =>
-  options.grantType === 'refreshToken'
-    ? {
+function prepareFormData(options: Options) {
+  switch (options.grantType) {
+    case 'authorization_code':
+      return {
+        grant_type: 'authorization_code',
+        client_id: options.key,
+        client_secret: options.secret,
+        redirect_uri: options.redirectUri,
+        code: options.code,
+      }
+    case 'refreshToken':
+      return {
         grant_type: 'refresh_token',
         client_id: options.key,
         client_secret: options.secret,
         redirect_uri: options.redirectUri,
         refresh_token: options.refreshToken,
       }
-    : options.grantType === 'jwtAssertion'
-      ? {
-          grantType: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-          assertion: signJwt(options),
-        }
-      : {
-          grant_type: 'client_credentials',
-        }
+    case 'jwtAssertion':
+      return {
+        grantType: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+        assertion: signJwt(options),
+      }
+    default:
+      return {
+        grant_type: 'client_credentials',
+      }
+  }
+}
 
 const getHeaders = (options: Options): Record<string, string> =>
   options.grantType === 'clientCredentials'
@@ -68,7 +83,7 @@ export default async function authenticate(
 
   const uri = options.uri
   const body = serializeForm({
-    ...getData(options),
+    ...prepareFormData(options),
     ...(options.scope ? { scope: options.scope } : {}),
   })
   const headers = {

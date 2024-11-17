@@ -12,9 +12,19 @@ export interface Authenticator {
   isAuthenticated: (authentication: Authentication | null) => boolean
   authentication: {
     [asFunction: string]: (
-      authentication: Authentication | null
+      authentication: Authentication | null,
     ) => Record<string, unknown>
   }
+}
+
+export interface AuthCodeOptions {
+  grantType: 'authorization_code'
+  uri: string
+  key: string
+  secret: string
+  redirectUri: string
+  code: string
+  scope?: string
 }
 
 export interface RefreshOptions {
@@ -46,7 +56,11 @@ export interface JwtAssertionOptions {
   expiresIn?: number
 }
 
-export type Options = RefreshOptions | ClientOptions | JwtAssertionOptions
+export type Options =
+  | AuthCodeOptions
+  | RefreshOptions
+  | ClientOptions
+  | JwtAssertionOptions
 
 export interface TokenObject extends Record<string, unknown> {
   token?: string
@@ -55,4 +69,3 @@ export interface TokenObject extends Record<string, unknown> {
 export interface HttpHeaders extends Record<string, unknown> {
   Authorization?: string
 }
-
