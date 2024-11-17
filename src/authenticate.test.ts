@@ -74,16 +74,16 @@ const setupNock = (uri: string, type = 'refresh', includeScope = false) => {
       (type === 'client'
         ? expectedClientRequest
         : type === 'jwtAssertion'
-        ? expectedJwtAssertionRequest
-        : expectedRefreshRequest) + (includeScope ? '&scope=public-api' : ''),
+          ? expectedJwtAssertionRequest
+          : expectedRefreshRequest) + (includeScope ? '&scope=public-api' : ''),
     )
     .reply(
       200,
       type === 'client'
         ? clientResponse
         : type === 'jwtAssertion'
-        ? jwtAssertionResponse
-        : refreshResponse,
+          ? jwtAssertionResponse
+          : refreshResponse,
     )
 }
 
