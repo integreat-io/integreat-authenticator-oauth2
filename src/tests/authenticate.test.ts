@@ -1,7 +1,14 @@
 import test from 'ava'
 import nock from 'nock'
+import type { Action } from 'integreat'
 
 import authenticator from '../index.js'
+
+// Setup
+
+const dispatch = async (_action: Action) => ({ status: 'noaction' })
+
+// Tests
 
 test('should authenticate', async (t) => {
   const expectedRequest =
@@ -28,9 +35,9 @@ test('should authenticate', async (t) => {
   }
   const authentication = null
 
-  const isAuth1 = authenticator.isAuthenticated(authentication)
-  const ret = await authenticator.authenticate(options)
-  const isAuth2 = authenticator.isAuthenticated(ret)
+  const isAuth1 = authenticator.isAuthenticated(authentication, options, null)
+  const ret = await authenticator.authenticate(options, null, dispatch, null)
+  const isAuth2 = authenticator.isAuthenticated(ret, options, null)
 
   t.false(isAuth1)
   t.is(ret.status, 'granted')

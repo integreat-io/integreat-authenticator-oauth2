@@ -2,6 +2,19 @@ import test from 'ava'
 
 import authenticator from './index.js'
 
+// Set up
+
+const options = {
+  grantType: 'authorizationCode' as const,
+  uri: 'https://api1.test/token',
+  key: 'client1',
+  secret: 's3cr3t',
+  redirectUri: 'https://redirect.com/here',
+  code: '4Uthc0d3',
+}
+
+// Tests
+
 test('isAuthenticated should recognize authentications', (t) => {
   const authenticated = {
     status: 'granted',
@@ -21,12 +34,12 @@ test('isAuthenticated should recognize authentications', (t) => {
     expire: Date.now() + 3600000,
   }
 
-  t.true(authenticator.isAuthenticated(authenticated))
-  t.false(authenticator.isAuthenticated(expired))
-  t.true(authenticator.isAuthenticated(noExpired))
-  t.false(authenticator.isAuthenticated(unauthenticated))
-  t.false(authenticator.isAuthenticated(refused))
-  t.false(authenticator.isAuthenticated(null))
+  t.true(authenticator.isAuthenticated(authenticated, options, null))
+  t.false(authenticator.isAuthenticated(expired, options, null))
+  t.true(authenticator.isAuthenticated(noExpired, options, null))
+  t.false(authenticator.isAuthenticated(unauthenticated, options, null))
+  t.false(authenticator.isAuthenticated(refused, options, null))
+  t.false(authenticator.isAuthenticated(null, options, null))
 })
 
 test('asObject should return token', (t) => {

@@ -1,8 +1,8 @@
 # OAuth 2.0 authenticator for Integreat
 
 Makes Integreat handle authentication with an OAuth 2.0 service. Supports three
-grant types: client credentials, refresh token, and assertion with self-signed
-JWT token.
+grant types: client credentials, authorization code, refresh token, and
+assertion with self-signed JWT token.
 
 [![npm Version](https://img.shields.io/npm/v/integreat-authenticator-oauth2.svg)](https://www.npmjs.com/package/integreat-authenticator-oauth2)
 [![Maintainability](https://api.codeclimate.com/v1/badges/6331723a6ff61de5f232/maintainability)](https://codeclimate.com/github/integreat-io/integreat-authenticator-oauth2/maintainability)
@@ -21,7 +21,7 @@ Install from npm:
 npm install integreat-authenticator-oauth2
 ```
 
-Example setup with refresh token grant type:
+Example setup with client credentials grant type:
 
 ```javascript
 import Integreat from 'integreat'
@@ -32,12 +32,10 @@ const defs = {
     id: 'service-oauth2',
     authenticator: 'oauth2',
     options: {
-      grantType: 'refreshToken',
+      grantType: 'clientCredential',
       uri: 'https://api.service.test/oauth/v1/token',
       key: 'client1',
-      secret: 's3cr3t,
-      redirectUri: 'https://service.test/cb,
-      refreshToken: 't0k3n',
+      secret: 's3cr3t',
     }
   },
   schemas: [ /* your schemas */ ],
@@ -62,7 +60,7 @@ const resources = {
 const great = Integreat.create(defs, resources)
 ```
 
-An auth def with the client credentials grant type could look like this:
+An auth def with the authorization code grant type could look like this:
 
 ```javascript
 const def = {
@@ -70,16 +68,37 @@ const def = {
     id: 'service-oauth2',
     authenticator: 'oauth2',
     options: {
-      grantType: 'clientCredential',
+      grantType: 'authorizationCode',
       uri: 'https://api.service.test/oauth/v1/token',
       key: 'client1',
       secret: 's3cr3t',
+      redirectUri: 'https://service.test/cb',
+      code: 'c0d3'
     },
   },
 }
 ```
 
-An auth def with the client credentials grant type could look like this:
+An auth def with the refresh token grant type could look like this:
+
+```javascript
+const def = {
+  auths: {
+    id: 'service-oauth2',
+    authenticator: 'oauth2',
+    options: {
+      grantType: 'refreshToken',
+      uri: 'https://api.service.test/oauth/v1/token',
+      key: 'client1',
+      secret: 's3cr3t,
+      redirectUri: 'https://service.test/cb',
+      refreshToken: 't0k3n',
+    },
+  },
+}
+```
+
+An auth def with the JWT assertion grant type could look like this:
 
 ```javascript
 const def = {

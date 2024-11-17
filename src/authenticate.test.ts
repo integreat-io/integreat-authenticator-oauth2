@@ -1,6 +1,7 @@
 import test from 'ava'
 import nock from 'nock'
 import jwt from 'jsonwebtoken'
+import type { Action } from 'integreat'
 import type { Options } from './types.js'
 
 import authenticate from './authenticate.js'
@@ -42,6 +43,8 @@ const jwtAssertionResponse = {
   token_type: 'Bearer',
 }
 
+const dispatch = async (_action: Action) => ({ status: 'noaction' })
+
 test.after.always(() => {
   nock.restore()
 })
@@ -64,7 +67,7 @@ test('should authenticate with authorization code', async (t) => {
       expires_in: 21600,
     })
   const options = {
-    grantType: 'authorization_code' as const,
+    grantType: 'authorizationCode' as const,
     uri: 'https://api1.test/token',
     key: 'client1',
     secret: 's3cr3t',
@@ -73,7 +76,7 @@ test('should authenticate with authorization code', async (t) => {
   }
   const expectedExpire = Date.now() + 21600000
 
-  const ret = await authenticate(options)
+  const ret = await authenticate(options, null, dispatch, null)
 
   t.is(ret.status, 'granted', ret.error)
   t.is(ret.token, 't0k3n')
@@ -93,7 +96,7 @@ test('should authenticate with refresh token', async (t) => {
   })
     .post('/token', expectedRequest)
     .reply(200, {
-      refresh_token: 'r3fr3sh',
+      refresh_token: 'r4fr4sh',
       access_token: 't0k3n',
       expires_in: 21600,
     })
@@ -107,10 +110,52 @@ test('should authenticate with refresh token', async (t) => {
   }
   const expectedExpire = Date.now() + 21600000
 
-  const ret = await authenticate(options)
+  const ret = await authenticate(options, null, dispatch, null)
 
   t.is(ret.status, 'granted', ret.error)
   t.is(ret.token, 't0k3n')
+  t.is(ret.refreshToken, 'r4fr4sh')
+  t.true((ret.expire as number) >= expectedExpire)
+  t.true((ret.expire as number) < expectedExpire + 1000)
+  t.true(scope.isDone())
+})
+
+test('should authenticate with refresh token when authorization code and refresh token is present in previous authorization', async (t) => {
+  const expectedRequest =
+    'grant_type=refresh_token&client_id=client1&client_secret=s3cr3t&' +
+    'redirect_uri=https%3A%2F%2Fredirect.com%2Fhere&refresh_token=r3fr3sh'
+  const scope = nock('https://api2.test/', {
+    reqheaders: {
+      'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+    },
+  })
+    .post('/token', expectedRequest)
+    .reply(200, {
+      refresh_token: 'r4fr4sh',
+      access_token: 't0k3n',
+      expires_in: 21600,
+    })
+  const options = {
+    grantType: 'authorizationCode' as const,
+    uri: 'https://api2.test/token',
+    key: 'client1',
+    secret: 's3cr3t',
+    redirectUri: 'https://redirect.com/here',
+    code: '4Uthc0d3',
+  }
+  const authorization = {
+    status: 'granted',
+    token: 't0k3n',
+    refreshToken: 'r3fr3sh',
+    expire: 21600,
+  }
+  const expectedExpire = Date.now() + 21600000
+
+  const ret = await authenticate(options, null, dispatch, authorization)
+
+  t.is(ret.status, 'granted', ret.error)
+  t.is(ret.token, 't0k3n')
+  t.is(ret.refreshToken, 'r4fr4sh')
   t.true((ret.expire as number) >= expectedExpire)
   t.true((ret.expire as number) < expectedExpire + 1000)
   t.true(scope.isDone())
@@ -139,7 +184,7 @@ test('should authenticate with client credentials', async (t) => {
   }
   const expectedExpire = Date.now() + 21600000
 
-  const ret = await authenticate(options)
+  const ret = await authenticate(options, null, dispatch, null)
 
   t.is(ret.status, 'granted', ret.error)
   t.is(ret.token, externalJwt)
@@ -168,7 +213,7 @@ test('should authenticate with jwt-bearer credentials', async (t) => {
   }
   const expectedExpire = Date.now() + 3599000
 
-  const ret = await authenticate(options)
+  const ret = await authenticate(options, null, dispatch, null)
 
   t.is(ret.status, 'granted', ret.error)
   t.is(ret.token, 't0k3nFr0mJWT')
@@ -202,7 +247,7 @@ test('should include scope in grant request', async (t) => {
   }
   const expectedExpire = Date.now() + 21600000
 
-  const ret = await authenticate(options)
+  const ret = await authenticate(options, null, dispatch, null)
 
   t.is(ret.status, 'granted', ret.error)
   t.is(ret.token, externalJwt)
@@ -214,7 +259,7 @@ test('should include scope in grant request', async (t) => {
 test('should not authenticate with missing options', async (t) => {
   const options = {} as Options
 
-  const ret = await authenticate(options)
+  const ret = await authenticate(options, null, dispatch, null)
 
   t.is(ret.status, 'error')
   t.is(typeof ret.error, 'string')
@@ -234,7 +279,7 @@ test('should return refused on authentication error', async (t) => {
     refreshToken: 'r3fr3sh',
   }
 
-  const ret = await authenticate(options)
+  const ret = await authenticate(options, null, dispatch, null)
 
   t.is(ret.status, 'refused')
   t.true(scope.isDone())
@@ -251,7 +296,7 @@ test('should return error when apiUrl not found', async (t) => {
     refreshToken: 'r3fr3sh',
   }
 
-  const ret = await authenticate(options)
+  const ret = await authenticate(options, null, dispatch, null)
 
   t.is(ret.status, 'error')
   t.is(typeof ret.error, 'string')
@@ -269,7 +314,7 @@ test('should return error when json response is not valid', async (t) => {
     refreshToken: 'r3fr3sh',
   }
 
-  const ret = await authenticate(options)
+  const ret = await authenticate(options, null, dispatch, null)
 
   t.is(ret.status, 'error')
   t.is(typeof ret.error, 'string')

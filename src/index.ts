@@ -1,13 +1,16 @@
 import authenticate from './authenticate.js'
+import type { Authenticator, Action } from 'integreat'
 import type {
   Authentication,
-  Authenticator,
+  Options,
   TokenObject,
   HttpHeaders,
 } from './types.js'
 
 function isAuthenticated(
   authentication: Authentication | null,
+  _options: Options | null,
+  _action: Action | null,
 ): authentication is Authentication {
   if (!authentication) {
     return false
@@ -20,20 +23,20 @@ function isAuthenticated(
   )
 }
 
-const oauth2: Authenticator = {
+const oauth2: Authenticator<Authentication, Options> = {
   authenticate,
 
   isAuthenticated,
 
   authentication: {
     asObject(authentication: Authentication | null): TokenObject {
-      return isAuthenticated(authentication)
+      return isAuthenticated(authentication, null, null)
         ? { token: authentication.token }
         : {}
     },
 
     asHttpHeaders(authentication: Authentication | null): HttpHeaders {
-      return isAuthenticated(authentication)
+      return isAuthenticated(authentication, null, null)
         ? { Authorization: `Bearer ${authentication.token}` }
         : {}
     },

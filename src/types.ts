@@ -1,24 +1,15 @@
-export type AuthOptions = Record<string, unknown>
+import type {
+  Authentication as BaseAuthentication,
+  AuthOptions,
+} from 'integreat'
 
-export interface Authentication extends AuthOptions {
-  status: string
+export interface Authentication extends BaseAuthentication {
   token?: string
-  expire?: number
-  error?: string
-}
-
-export interface Authenticator {
-  authenticate: (options: AuthOptions | null) => Promise<Authentication>
-  isAuthenticated: (authentication: Authentication | null) => boolean
-  authentication: {
-    [asFunction: string]: (
-      authentication: Authentication | null,
-    ) => Record<string, unknown>
-  }
+  refreshToken?: string
 }
 
 export interface AuthCodeOptions {
-  grantType: 'authorization_code'
+  grantType: 'authorizationCode'
   uri: string
   key: string
   secret: string
@@ -56,11 +47,8 @@ export interface JwtAssertionOptions {
   expiresIn?: number
 }
 
-export type Options =
-  | AuthCodeOptions
-  | RefreshOptions
-  | ClientOptions
-  | JwtAssertionOptions
+export type Options = AuthOptions &
+  (AuthCodeOptions | RefreshOptions | ClientOptions | JwtAssertionOptions)
 
 export interface TokenObject extends Record<string, unknown> {
   token?: string

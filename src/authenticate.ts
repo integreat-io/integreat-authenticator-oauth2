@@ -1,14 +1,21 @@
 import formTransformer from 'integreat-adapter-form/transformer.js'
 import signJwt from './signJwt.js'
+import type { Action, HandlerDispatch } from 'integreat'
 import type { Options, Authentication } from './types.js'
 
 interface ResponseData {
   access_token: string
+  refresh_token?: string
   expires_in: number
 }
 
-const serializeForm = (data: unknown): string | undefined =>
-  formTransformer({})()(data, { rev: true })
+// Create a simple serialization function from a transformer. We're jumping
+// through some hoops here, but it makes this behave exactly as form content in
+// other parts of Integreat.
+const serializeForm = (data: unknown) =>
+  formTransformer({})({})(data, { rev: true, context: [], value: data }) as
+    | string
+    | undefined
 
 const base64Auth = (key: string, secret: string) =>
   Buffer.from(`${key}:${secret}`).toString('base64')
@@ -22,7 +29,7 @@ const isValidOptions = (options: Partial<Options> | null): options is Options =>
     ((options.grantType === 'refreshToken' &&
       options.redirectUri &&
       options.refreshToken) ||
-      (options.grantType === 'authorization_code' &&
+      (options.grantType === 'authorizationCode' &&
         options.redirectUri &&
         options.code) ||
       options.grantType === 'clientCredentials' ||
@@ -37,23 +44,43 @@ async function parseData(response: Response): Promise<ResponseData | null> {
   }
 }
 
-function prepareFormData(options: Options) {
+// Will return authorization code type as if it was a refresh token, when it has
+// a refresh token in the `authentication`. Otherwise, return what is asked for.
+function resolveTypeAndToken(
+  options: Options,
+  authentication: Authentication | null,
+): ['authorization_code' | 'refresh_token', string] {
+  if (
+    options.grantType === 'authorizationCode' &&
+    !authentication?.refreshToken
+  ) {
+    return ['authorization_code', options.code]
+  } else {
+    return [
+      'refresh_token',
+      options.grantType === 'refreshToken'
+        ? options.refreshToken
+        : (authentication?.refreshToken as string), // Use the auth refresh token for authorization code
+    ]
+  }
+}
+
+function prepareFormData(
+  options: Options,
+  authentication: Authentication | null,
+) {
   switch (options.grantType) {
-    case 'authorization_code':
-      return {
-        grant_type: 'authorization_code',
-        client_id: options.key,
-        client_secret: options.secret,
-        redirect_uri: options.redirectUri,
-        code: options.code,
-      }
+    case 'authorizationCode':
     case 'refreshToken':
+      const [grantType, token] = resolveTypeAndToken(options, authentication)
       return {
-        grant_type: 'refresh_token',
+        grant_type: grantType,
         client_id: options.key,
         client_secret: options.secret,
         redirect_uri: options.redirectUri,
-        refresh_token: options.refreshToken,
+        ...(grantType === 'refresh_token'
+          ? { refresh_token: token }
+          : { code: token }),
       }
     case 'jwtAssertion':
       return {
@@ -76,6 +103,9 @@ const getHeaders = (options: Options): Record<string, string> =>
 
 export default async function authenticate(
   options: Partial<Options> | null,
+  _action: Action | null,
+  _dispatch: HandlerDispatch,
+  authentication: Authentication | null,
 ): Promise<Authentication> {
   if (!isValidOptions(options)) {
     return { status: 'error', error: 'Missing props on options object' }
@@ -83,7 +113,7 @@ export default async function authenticate(
 
   const uri = options.uri
   const body = serializeForm({
-    ...prepareFormData(options),
+    ...prepareFormData(options, authentication),
     ...(options.scope ? { scope: options.scope } : {}),
   })
   const headers = {
@@ -113,6 +143,7 @@ export default async function authenticate(
         status: 'granted',
         token: data.access_token,
         expire: Date.now() + data.expires_in * 1000,
+        ...(data.refresh_token ? { refreshToken: data.refresh_token } : {}),
       }
     } else {
       return { status: 'error', error: 'Invalid json response' }
