@@ -325,3 +325,23 @@ test('should return error when json response is not valid', async (t) => {
   t.is(typeof ret.error, 'string')
   t.true(scope.isDone())
 })
+
+test('should return error when uri is missing', async (t) => {
+  const options = {
+    grantType: 'authorizationCode' as const,
+    // No uri
+    key: 'client1',
+    secret: 's3cr3t',
+    redirectUri: 'https://redirect.com/here',
+    code: '4Uthc0d3',
+    authHeaderType: 'Basic',
+  }
+  const expected = {
+    status: 'error',
+    error: 'Missing props on options object',
+  }
+
+  const ret = await authenticate(options, null, dispatch, null)
+
+  t.deepEqual(ret, expected)
+})

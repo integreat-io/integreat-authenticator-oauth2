@@ -1,6 +1,6 @@
 import type {
   Authentication as BaseAuthentication,
-  AuthOptions,
+  AuthOptions as BaseAuthOptions,
 } from 'integreat'
 
 export interface Authentication extends BaseAuthentication {
@@ -48,12 +48,14 @@ export interface JwtAssertionOptions {
   expiresIn?: number
 }
 
-export type Options = AuthOptions & { authHeaderType?: string } & (
+export type Options = BaseAuthOptions & { authHeaderType?: string } & (
     | AuthCodeOptions
     | RefreshOptions
     | ClientOptions
     | JwtAssertionOptions
   )
+
+export type AuthOptions = Partial<Options>
 
 export interface TokenObject extends Record<string, unknown> {
   token?: string

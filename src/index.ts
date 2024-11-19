@@ -2,14 +2,14 @@ import authenticate from './authenticate.js'
 import type { Authenticator, Action } from 'integreat'
 import type {
   Authentication,
-  Options,
+  AuthOptions,
   TokenObject,
   HttpHeaders,
 } from './types.js'
 
 function isAuthenticated(
   authentication: Authentication | null,
-  _options: Options | null,
+  _options: AuthOptions | null,
   _action: Action | null,
 ): authentication is Authentication {
   if (!authentication) {
@@ -23,7 +23,7 @@ function isAuthenticated(
   )
 }
 
-const oauth2: Authenticator<Authentication, Options> = {
+const oauth2: Authenticator<Authentication, AuthOptions> = {
   authenticate,
 
   isAuthenticated,
@@ -48,5 +48,7 @@ const oauth2: Authenticator<Authentication, Options> = {
     },
   },
 }
+
+export const auth: Authenticator = oauth2
 
 export default oauth2

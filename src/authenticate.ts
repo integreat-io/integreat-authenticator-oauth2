@@ -1,7 +1,7 @@
 import formTransformer from 'integreat-adapter-form/transformer.js'
 import signJwt from './signJwt.js'
 import type { Action, HandlerDispatch } from 'integreat'
-import type { Options, Authentication } from './types.js'
+import type { AuthOptions, Options, Authentication } from './types.js'
 
 interface ResponseData {
   access_token: string
@@ -20,7 +20,9 @@ const serializeForm = (data: unknown) =>
 const base64Auth = (key: string, secret: string) =>
   Buffer.from(`${key}:${secret}`).toString('base64')
 
-const isValidOptions = (options: Partial<Options> | null): options is Options =>
+const isValidOptions = (
+  options: Partial<AuthOptions> | null,
+): options is Options =>
   !!(
     options &&
     options.uri &&
@@ -102,7 +104,7 @@ const getHeaders = (options: Options): Record<string, string> =>
     : {}
 
 export default async function authenticate(
-  options: Partial<Options> | null,
+  options: Partial<AuthOptions> | null,
   _action: Action | null,
   _dispatch: HandlerDispatch,
   authentication: Authentication | null,
