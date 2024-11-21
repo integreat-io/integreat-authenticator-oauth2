@@ -49,6 +49,4 @@ const oauth2: Authenticator<Authentication, AuthOptions> = {
   },
 }
 
-export const auth: Authenticator = oauth2
-
 export default oauth2
