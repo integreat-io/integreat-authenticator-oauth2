@@ -44,8 +44,8 @@
   "devDependencies": {
     "@integreat/ts-dev-setup": "^5.0.4",
     "@types/jsonwebtoken": "^9.0.7",
-    "@types/node": "^22.9.0",
-    "integreat": "^1.6.0-rc.27",
+    "@types/node": "^22.9.1",
+    "integreat": "^1.6.0-rc.28",
     "nock": "^14.0.0-beta.16"
   }
 }
