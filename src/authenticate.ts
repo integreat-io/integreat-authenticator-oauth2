@@ -10,6 +10,13 @@ interface ResponseData {
   error_description?: string
 }
 
+const VALID_GRANT_TYPES = [
+  'authorizationCode',
+  'refreshToken',
+  'clientCredentials',
+  'jwtAssertion',
+]
+
 // Create a simple serialization function from a transformer. We're jumping
 // through some hoops here, but it makes this behave exactly as form content in
 // other parts of Integreat.
@@ -24,20 +31,25 @@ const base64Auth = (key: string, secret: string) =>
 const isValidOptions = (
   options: Partial<AuthOptions> | null,
 ): options is Options =>
-  !!(
-    options &&
-    options.uri &&
-    options.key &&
-    options.secret &&
-    ((options.grantType === 'refreshToken' &&
-      options.redirectUri &&
-      options.refreshToken) ||
-      (options.grantType === 'authorizationCode' &&
-        options.redirectUri &&
-        options.code) ||
-      options.grantType === 'clientCredentials' ||
-      options.grantType === 'jwtAssertion')
-  )
+  !!options &&
+  typeof options.grantType === 'string' &&
+  VALID_GRANT_TYPES.includes(options.grantType)
+
+const baseFields = ['grantType', 'uri', 'key', 'secret']
+const conditionalFields = {
+  authorizationCode: ['redirectUri', 'code'],
+  refreshToken: ['redirectUri', 'refreshToken'],
+}
+
+function hasRequiredOptions(options: Options): string[] {
+  const requiredFields = [
+    ...baseFields,
+    ...(conditionalFields[
+      options.grantType as keyof typeof conditionalFields
+    ] || []),
+  ]
+  return requiredFields.filter((field) => !options[field as keyof Options])
+}
 
 async function parseData(response: Response): Promise<ResponseData | null> {
   try {
@@ -111,7 +123,17 @@ export default async function authenticate(
   authentication: Authentication | null,
 ): Promise<Authentication> {
   if (!isValidOptions(options)) {
-    return { status: 'error', error: 'Missing props on options object' }
+    return {
+      status: 'error',
+      error: 'Unknown or missing grant type option',
+    }
+  }
+  const missingFields = hasRequiredOptions(options)
+  if (missingFields.length > 0) {
+    return {
+      status: 'error',
+      error: `Missing ${missingFields.join(', ')} option${missingFields.length > 1 ? 's' : ''}`,
+    }
   }
 
   const uri = options.uri

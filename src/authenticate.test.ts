@@ -354,6 +354,23 @@ test('should return error when json response is not valid', async (t) => {
   t.true(scope.isDone())
 })
 
+test('should return error when grant type is invalid', async (t) => {
+  const options = {
+    grantType: 'invalid',
+    uri: 'https://api4.test/token',
+    key: 'client1',
+    secret: 's3cr3t',
+  } as unknown as Options
+  const expected = {
+    status: 'error',
+    error: 'Unknown or missing grant type option',
+  }
+
+  const ret = await authenticate(options, null, dispatch, null)
+
+  t.deepEqual(ret, expected)
+})
+
 test('should return error when uri is missing', async (t) => {
   const options = {
     grantType: 'authorizationCode' as const,
@@ -366,7 +383,27 @@ test('should return error when uri is missing', async (t) => {
   }
   const expected = {
     status: 'error',
-    error: 'Missing props on options object',
+    error: 'Missing uri option',
+  }
+
+  const ret = await authenticate(options, null, dispatch, null)
+
+  t.deepEqual(ret, expected)
+})
+
+test('should return error when code and redirectUri for authorizationCode is missing', async (t) => {
+  const options = {
+    grantType: 'authorizationCode' as const,
+    uri: 'https://api4.test/token',
+    key: 'client1',
+    secret: 's3cr3t',
+    // No redirectUri
+    // No code
+    authHeaderType: 'Basic',
+  }
+  const expected = {
+    status: 'error',
+    error: 'Missing redirectUri, code options',
   }
 
   const ret = await authenticate(options, null, dispatch, null)

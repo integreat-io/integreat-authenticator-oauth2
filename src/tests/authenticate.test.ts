@@ -40,7 +40,7 @@ test('should authenticate', async (t) => {
   const isAuth2 = authenticator.isAuthenticated(ret, options, null)
 
   t.false(isAuth1)
-  t.is(ret.status, 'granted')
+  t.is(ret.status, 'granted', ret.error)
   t.is(ret.token, 't0k3n')
   t.true(isAuth2)
   t.true(scope.isDone())
