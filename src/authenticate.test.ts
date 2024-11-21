@@ -273,6 +273,30 @@ test('should not authenticate with missing options', async (t) => {
 test('should return refused on authentication error', async (t) => {
   const scope = nock('https://api8.test').post('/token').reply(400, {
     error: '400',
+    // No error message
+  })
+  const options = {
+    grantType: 'refreshToken' as const,
+    uri: 'https://api8.test/token',
+    key: 'client1',
+    secret: 's3cr3t',
+    redirectUri: 'https://redirect.com/here',
+    refreshToken: 'r3fr3sh',
+  }
+  const expectedResponse = {
+    status: 'refused',
+    error: 'Refused by service',
+  }
+
+  const ret = await authenticate(options, null, dispatch, null)
+
+  t.deepEqual(ret, expectedResponse)
+  t.true(scope.isDone())
+})
+
+test('should return error message from service when refused', async (t) => {
+  const scope = nock('https://api8.test').post('/token').reply(400, {
+    error: '400',
     error_description: 'Awful error',
   })
   const options = {
@@ -283,10 +307,14 @@ test('should return refused on authentication error', async (t) => {
     redirectUri: 'https://redirect.com/here',
     refreshToken: 'r3fr3sh',
   }
+  const expectedResponse = {
+    status: 'refused',
+    error: 'Refused by service: Awful error',
+  }
 
   const ret = await authenticate(options, null, dispatch, null)
 
-  t.is(ret.status, 'refused')
+  t.deepEqual(ret, expectedResponse)
   t.true(scope.isDone())
 })
 

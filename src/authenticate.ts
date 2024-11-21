@@ -7,6 +7,7 @@ interface ResponseData {
   access_token: string
   refresh_token?: string
   expires_in: number
+  error_description?: string
 }
 
 // Create a simple serialization function from a transformer. We're jumping
@@ -138,8 +139,8 @@ export default async function authenticate(
     }
   }
 
+  const data = await parseData(response)
   if (response.ok) {
-    const data = await parseData(response)
     if (data) {
       return {
         status: 'granted',
@@ -153,7 +154,12 @@ export default async function authenticate(
     }
   } else {
     if (response.status === 400) {
-      return { status: 'refused' }
+      return {
+        status: 'refused',
+        error: data?.error_description
+          ? `Refused by service: ${data?.error_description}`
+          : 'Refused by service',
+      }
     } else {
       return { status: 'error', error: response.statusText }
     }
