@@ -1,3 +1,4 @@
+import debugFn from 'debug'
 import formTransformer from 'integreat-adapter-form/transformer.js'
 import signJwt from './signJwt.js'
 import type { Action, HandlerDispatch } from 'integreat'
@@ -16,6 +17,8 @@ const VALID_GRANT_TYPES = [
   'clientCredentials',
   'jwtAssertion',
 ]
+
+const debug = debugFn('integreat:authenticator:oauth2')
 
 // Create a simple serialization function from a transformer. We're jumping
 // through some hoops here, but it makes this behave exactly as form content in
@@ -150,18 +153,22 @@ export default async function authenticate(
     body,
     headers,
   }
+  debug(`Sending auth request: ${JSON.stringify(request)}`)
 
   let response: Response
   try {
     response = await fetch(uri, request)
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    debug(`Auth attempt failed: ${message}`)
     return {
       status: 'error',
-      error: error instanceof Error ? error.message : String(error),
+      error: message,
     }
   }
 
   const data = await parseData(response)
+  debug(`Received auth response: ${JSON.stringify(data)}`)
   if (response.ok) {
     if (data) {
       return {

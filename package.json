@@ -38,11 +38,13 @@
     "node": ">= 18"
   },
   "dependencies": {
+    "debug": "^4.3.7",
     "integreat-adapter-form": "^1.1.2",
     "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
     "@integreat/ts-dev-setup": "^5.0.4",
+    "@types/debug": "^4.1.12",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^22.9.1",
     "integreat": "^1.6.0-rc.28",
