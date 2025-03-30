@@ -1,4 +1,5 @@
-import test from 'ava'
+import test from 'node:test'
+import assert from 'node:assert/strict'
 
 import authenticator from './index.js'
 
@@ -15,7 +16,7 @@ const options = {
 
 // Tests
 
-test('isAuthenticated should recognize authentications', (t) => {
+test('isAuthenticated should recognize authentications', () => {
   const authenticated = {
     status: 'granted',
     token: 't0k3n',
@@ -34,15 +35,21 @@ test('isAuthenticated should recognize authentications', (t) => {
     expire: Date.now() + 3600000,
   }
 
-  t.true(authenticator.isAuthenticated(authenticated, options, null))
-  t.false(authenticator.isAuthenticated(expired, options, null))
-  t.true(authenticator.isAuthenticated(noExpired, options, null))
-  t.false(authenticator.isAuthenticated(unauthenticated, options, null))
-  t.false(authenticator.isAuthenticated(refused, options, null))
-  t.false(authenticator.isAuthenticated(null, options, null))
+  assert.equal(
+    authenticator.isAuthenticated(authenticated, options, null),
+    true,
+  )
+  assert.equal(authenticator.isAuthenticated(expired, options, null), false)
+  assert.equal(authenticator.isAuthenticated(noExpired, options, null), true)
+  assert.equal(
+    authenticator.isAuthenticated(unauthenticated, options, null),
+    false,
+  )
+  assert.equal(authenticator.isAuthenticated(refused, options, null), false)
+  assert.equal(authenticator.isAuthenticated(null, options, null), false)
 })
 
-test('asObject should return token', (t) => {
+test('asObject should return token', () => {
   const authentication = {
     status: 'granted',
     token: 't0k3n',
@@ -54,10 +61,10 @@ test('asObject should return token', (t) => {
 
   const ret = authenticator.authentication.asObject(authentication)
 
-  t.deepEqual(ret, expected)
+  assert.deepEqual(ret, expected)
 })
 
-test('asObject should return empty object when not authenticated', (t) => {
+test('asObject should return empty object when not authenticated', () => {
   const authentication = {
     status: 'granted',
     token: 't0k3n',
@@ -67,10 +74,10 @@ test('asObject should return empty object when not authenticated', (t) => {
 
   const ret = authenticator.authentication.asObject(authentication)
 
-  t.deepEqual(ret, expected)
+  assert.deepEqual(ret, expected)
 })
 
-test('asHttpHeaders should return token as Authorization header', (t) => {
+test('asHttpHeaders should return token as Authorization header', () => {
   const authentication = {
     status: 'granted',
     token: 't0k3n',
@@ -82,10 +89,10 @@ test('asHttpHeaders should return token as Authorization header', (t) => {
 
   const ret = authenticator.authentication.asHttpHeaders(authentication)
 
-  t.deepEqual(ret, expected)
+  assert.deepEqual(ret, expected)
 })
 
-test('asHttpHeaders should return token as Authorization header with other token type', (t) => {
+test('asHttpHeaders should return token as Authorization header with other token type', () => {
   const authentication = {
     status: 'granted',
     token: 't0k3n',
@@ -98,10 +105,10 @@ test('asHttpHeaders should return token as Authorization header with other token
 
   const ret = authenticator.authentication.asHttpHeaders(authentication)
 
-  t.deepEqual(ret, expected)
+  assert.deepEqual(ret, expected)
 })
 
-test('asHttpHeaders should return token as Authorization header with no token type', (t) => {
+test('asHttpHeaders should return token as Authorization header with no token type', () => {
   const authentication = {
     status: 'granted',
     token: 't0k3n',
@@ -114,10 +121,10 @@ test('asHttpHeaders should return token as Authorization header with no token ty
 
   const ret = authenticator.authentication.asHttpHeaders(authentication)
 
-  t.deepEqual(ret, expected)
+  assert.deepEqual(ret, expected)
 })
 
-test('asHttpHeaders should return empty object when not authenticated', (t) => {
+test('asHttpHeaders should return empty object when not authenticated', () => {
   const authentication = {
     status: 'granted',
     token: 't0k3n',
@@ -127,10 +134,10 @@ test('asHttpHeaders should return empty object when not authenticated', (t) => {
 
   const ret = authenticator.authentication.asHttpHeaders(authentication)
 
-  t.deepEqual(ret, expected)
+  assert.deepEqual(ret, expected)
 })
 
-test('asHttpHeaders should support unbinded call to function', (t) => {
+test('asHttpHeaders should support unbinded call to function', () => {
   const authentication = {
     status: 'granted',
     token: 't0k3n',
@@ -143,5 +150,5 @@ test('asHttpHeaders should support unbinded call to function', (t) => {
 
   const ret = asHttpHeaders(authentication)
 
-  t.deepEqual(ret, expected)
+  assert.deepEqual(ret, expected)
 })

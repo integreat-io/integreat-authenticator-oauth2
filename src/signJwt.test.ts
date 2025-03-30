@@ -1,4 +1,5 @@
-import test from 'ava'
+import test from 'node:test'
+import assert from 'node:assert/strict'
 import jwt from 'jsonwebtoken'
 
 import signJwt from './signJwt.js'
@@ -23,7 +24,7 @@ const privateKey =
 
 // Tests
 
-test('should generate jwt token', (t) => {
+test('should generate jwt token', () => {
   const options = {
     grantType: 'jwtAssertion' as const,
     uri: 'https://api7.test/token',
@@ -39,11 +40,11 @@ test('should generate jwt token', (t) => {
   const ret = signJwt(options)
 
   const payload = parseJwt(ret)
-  t.is(payload?.iss, 'client1')
+  assert.equal(payload?.iss, 'client1')
   const iat = payload?.iat
-  t.true((iat || 0) >= now - 1)
-  t.true((iat || Number.MAX_VALUE) < now + 1)
-  t.is(payload?.aud, 'https://api.test/token')
-  t.is(payload?.exp, (iat || 0) + 3600)
-  t.is(payload?.scope, 'https://api.test/all')
+  assert.ok((iat || 0) >= now - 1)
+  assert.ok((iat || Number.MAX_VALUE) < now + 1)
+  assert.equal(payload?.aud, 'https://api.test/token')
+  assert.equal(payload?.exp, (iat || 0) + 3600)
+  assert.equal(payload?.scope, 'https://api.test/all')
 })

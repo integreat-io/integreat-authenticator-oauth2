@@ -1,4 +1,5 @@
-import test from 'ava'
+import test from 'node:test'
+import assert from 'node:assert/strict'
 import nock from 'nock'
 import jwt from 'jsonwebtoken'
 import type { Action } from 'integreat'
@@ -45,368 +46,382 @@ const jwtAssertionResponse = {
 
 const dispatch = async (_action: Action) => ({ status: 'noaction' })
 
-test.after.always(() => {
-  nock.restore()
-})
-
-// Tests
-
-test('should authenticate with authorization code', async (t) => {
-  const expectedRequest =
-    'grant_type=authorization_code&client_id=client1&client_secret=s3cr3t&' +
-    'redirect_uri=https%3A%2F%2Fredirect.com%2Fhere&code=4Uthc0d3'
-  const scope = nock('https://api1.test/', {
-    reqheaders: {
-      'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-    },
+test('authenticate', async (t) => {
+  t.after(() => {
+    nock.restore()
   })
-    .post('/token', expectedRequest)
-    .reply(200, {
-      refresh_token: 'r3fr3sh',
-      access_token: 't0k3n',
-      expires_in: 21600,
+
+  // Tests
+
+  await t.test('should authenticate with authorization code', async () => {
+    const expectedRequest =
+      'grant_type=authorization_code&client_id=client1&client_secret=s3cr3t&' +
+      'redirect_uri=https%3A%2F%2Fredirect.com%2Fhere&code=4Uthc0d3'
+    const scope = nock('https://api1.test/', {
+      reqheaders: {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+      },
     })
-  const options = {
-    grantType: 'authorizationCode' as const,
-    uri: 'https://api1.test/token',
-    key: 'client1',
-    secret: 's3cr3t',
-    redirectUri: 'https://redirect.com/here',
-    code: '4Uthc0d3',
-    authHeaderType: 'Basic',
-  }
-  const expectedExpire = Date.now() + 21600000
+      .post('/token', expectedRequest)
+      .reply(200, {
+        refresh_token: 'r3fr3sh',
+        access_token: 't0k3n',
+        expires_in: 21600,
+      })
+    const options = {
+      grantType: 'authorizationCode' as const,
+      uri: 'https://api1.test/token',
+      key: 'client1',
+      secret: 's3cr3t',
+      redirectUri: 'https://redirect.com/here',
+      code: '4Uthc0d3',
+      authHeaderType: 'Basic',
+    }
+    const expectedExpire = Date.now() + 21600000
 
-  const ret = await authenticate(options, null, dispatch, null)
+    const ret = await authenticate(options, null, dispatch, null)
 
-  t.is(ret.status, 'granted', ret.error)
-  t.is(ret.token, 't0k3n')
-  t.true((ret.expire as number) >= expectedExpire)
-  t.true((ret.expire as number) < expectedExpire + 1000)
-  t.is(ret.type, 'Basic') // Verify that this is passed on from options
-  t.true(scope.isDone())
-})
-
-test('should authenticate with refresh token', async (t) => {
-  const expectedRequest =
-    'grant_type=refresh_token&client_id=client1&client_secret=s3cr3t&' +
-    'redirect_uri=https%3A%2F%2Fredirect.com%2Fhere&refresh_token=r3fr3sh'
-  const scope = nock('https://api2.test/', {
-    reqheaders: {
-      'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-    },
+    assert.equal(ret.status, 'granted', ret.error)
+    assert.equal(ret.token, 't0k3n')
+    assert.ok((ret.expire as number) >= expectedExpire)
+    assert.ok((ret.expire as number) < expectedExpire + 1000)
+    assert.equal(ret.type, 'Basic') // Verify that this is passed on from options
+    assert.ok(scope.isDone())
   })
-    .post('/token', expectedRequest)
-    .reply(200, {
-      refresh_token: 'r4fr4sh',
-      access_token: 't0k3n',
-      expires_in: 21600,
+
+  await t.test('should authenticate with refresh token', async () => {
+    const expectedRequest =
+      'grant_type=refresh_token&client_id=client1&client_secret=s3cr3t&' +
+      'redirect_uri=https%3A%2F%2Fredirect.com%2Fhere&refresh_token=r3fr3sh'
+    const scope = nock('https://api2.test/', {
+      reqheaders: {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+      },
     })
-  const options = {
-    grantType: 'refreshToken' as const,
-    uri: 'https://api2.test/token',
-    key: 'client1',
-    secret: 's3cr3t',
-    redirectUri: 'https://redirect.com/here',
-    refreshToken: 'r3fr3sh',
-    authHeaderType: '',
-  }
-  const expectedExpire = Date.now() + 21600000
+      .post('/token', expectedRequest)
+      .reply(200, {
+        refresh_token: 'r4fr4sh',
+        access_token: 't0k3n',
+        expires_in: 21600,
+      })
+    const options = {
+      grantType: 'refreshToken' as const,
+      uri: 'https://api2.test/token',
+      key: 'client1',
+      secret: 's3cr3t',
+      redirectUri: 'https://redirect.com/here',
+      refreshToken: 'r3fr3sh',
+      authHeaderType: '',
+    }
+    const expectedExpire = Date.now() + 21600000
 
-  const ret = await authenticate(options, null, dispatch, null)
+    const ret = await authenticate(options, null, dispatch, null)
 
-  t.is(ret.status, 'granted', ret.error)
-  t.is(ret.token, 't0k3n')
-  t.is(ret.refreshToken, 'r4fr4sh')
-  t.true((ret.expire as number) >= expectedExpire)
-  t.true((ret.expire as number) < expectedExpire + 1000)
-  t.is(ret.type, '') // Verify that this is passed on from options
-  t.true(scope.isDone())
-})
-
-test('should authenticate with refresh token when authorization code and refresh token is present in previous authorization', async (t) => {
-  const expectedRequest =
-    'grant_type=refresh_token&client_id=client1&client_secret=s3cr3t&' +
-    'redirect_uri=https%3A%2F%2Fredirect.com%2Fhere&refresh_token=r3fr3sh'
-  const scope = nock('https://api2.test/', {
-    reqheaders: {
-      'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-    },
+    assert.equal(ret.status, 'granted', ret.error)
+    assert.equal(ret.token, 't0k3n')
+    assert.equal(ret.refreshToken, 'r4fr4sh')
+    assert.ok((ret.expire as number) >= expectedExpire)
+    assert.ok((ret.expire as number) < expectedExpire + 1000)
+    assert.equal(ret.type, '') // Verify that this is passed on from options
+    assert.ok(scope.isDone())
   })
-    .post('/token', expectedRequest)
-    .reply(200, {
-      refresh_token: 'r4fr4sh',
-      access_token: 't0k3n',
-      expires_in: 21600,
+
+  await t.test(
+    'should authenticate with refresh token when authorization code and refresh token is present in previous authorization',
+    async () => {
+      const expectedRequest =
+        'grant_type=refresh_token&client_id=client1&client_secret=s3cr3t&' +
+        'redirect_uri=https%3A%2F%2Fredirect.com%2Fhere&refresh_token=r3fr3sh'
+      const scope = nock('https://api2.test/', {
+        reqheaders: {
+          'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+        },
+      })
+        .post('/token', expectedRequest)
+        .reply(200, {
+          refresh_token: 'r4fr4sh',
+          access_token: 't0k3n',
+          expires_in: 21600,
+        })
+      const options = {
+        grantType: 'authorizationCode' as const,
+        uri: 'https://api2.test/token',
+        key: 'client1',
+        secret: 's3cr3t',
+        redirectUri: 'https://redirect.com/here',
+        code: '4Uthc0d3',
+      }
+      const authorization = {
+        status: 'granted',
+        token: 't0k3n',
+        refreshToken: 'r3fr3sh',
+        expire: 21600,
+      }
+      const expectedExpire = Date.now() + 21600000
+
+      const ret = await authenticate(options, null, dispatch, authorization)
+
+      assert.equal(ret.status, 'granted', ret.error)
+      assert.equal(ret.token, 't0k3n')
+      assert.equal(ret.refreshToken, 'r4fr4sh')
+      assert.ok((ret.expire as number) >= expectedExpire)
+      assert.ok((ret.expire as number) < expectedExpire + 1000)
+      assert.equal(ret.type, undefined) // Verify that this is passed on from options
+      assert.ok(scope.isDone())
+    },
+  )
+
+  await t.test('should authenticate with client credentials', async () => {
+    const expectedRequest = 'grant_type=client_credentials'
+    const scope = nock('https://api5.test', {
+      reqheaders: {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+        Authorization: 'Basic Y2xpZW50MTpzM2NyM3Q=',
+      },
     })
-  const options = {
-    grantType: 'authorizationCode' as const,
-    uri: 'https://api2.test/token',
-    key: 'client1',
-    secret: 's3cr3t',
-    redirectUri: 'https://redirect.com/here',
-    code: '4Uthc0d3',
-  }
-  const authorization = {
-    status: 'granted',
-    token: 't0k3n',
-    refreshToken: 'r3fr3sh',
-    expire: 21600,
-  }
-  const expectedExpire = Date.now() + 21600000
+      .post('/token', expectedRequest)
+      .reply(200, {
+        access_token: externalJwt,
+        expires_in: 21600,
+        token_type: 'Bearer',
+        scope: 'public-api',
+      })
+    const options = {
+      grantType: 'clientCredentials' as const,
+      uri: 'https://api5.test/token',
+      key: 'client1',
+      secret: 's3cr3t',
+    }
+    const expectedExpire = Date.now() + 21600000
 
-  const ret = await authenticate(options, null, dispatch, authorization)
+    const ret = await authenticate(options, null, dispatch, null)
 
-  t.is(ret.status, 'granted', ret.error)
-  t.is(ret.token, 't0k3n')
-  t.is(ret.refreshToken, 'r4fr4sh')
-  t.true((ret.expire as number) >= expectedExpire)
-  t.true((ret.expire as number) < expectedExpire + 1000)
-  t.is(ret.type, undefined) // Verify that this is passed on from options
-  t.true(scope.isDone())
-})
-
-test('should authenticate with client credentials', async (t) => {
-  const expectedRequest = 'grant_type=client_credentials'
-  const scope = nock('https://api5.test', {
-    reqheaders: {
-      'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-      Authorization: 'Basic Y2xpZW50MTpzM2NyM3Q=',
-    },
+    assert.equal(ret.status, 'granted', ret.error)
+    assert.equal(ret.token, externalJwt)
+    assert.ok((ret.expire as number) >= expectedExpire)
+    assert.ok((ret.expire as number) < expectedExpire + 1000)
+    assert.ok(scope.isDone())
   })
-    .post('/token', expectedRequest)
-    .reply(200, {
-      access_token: externalJwt,
-      expires_in: 21600,
-      token_type: 'Bearer',
+
+  await t.test('should authenticate with jwt-bearer credentials', async () => {
+    const scope = nock('https://api7.test', {
+      reqheaders: {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+      },
+    })
+      .post('/token', expectedJwtAssertionRequest)
+      .reply(200, jwtAssertionResponse)
+    const options = {
+      grantType: 'jwtAssertion' as const,
+      uri: 'https://api7.test/token',
+      key: 'client1',
+      secret: privateKey,
+      scope: 'https://api.test/all',
+      audience: 'https://api.test/token',
+      algorithm: 'RS256' as const,
+      expiresIn: 3600,
+    }
+    const expectedExpire = Date.now() + 3599000
+
+    const ret = await authenticate(options, null, dispatch, null)
+
+    assert.equal(ret.status, 'granted', ret.error)
+    assert.equal(ret.token, 't0k3nFr0mJWT')
+    assert.ok((ret.expire as number) >= expectedExpire)
+    assert.ok((ret.expire as number) < expectedExpire + 1000)
+    assert.ok(scope.isDone())
+  })
+
+  await t.test('should include scope in grant request', async () => {
+    const expectedRequest = 'grant_type=client_credentials&scope=public-api'
+    const scope = nock('https://api6.test', {
+      reqheaders: {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+        Authorization: 'Basic Y2xpZW50MTpzM2NyM3Q=',
+      },
+    })
+      .post('/token', expectedRequest)
+      .reply(200, {
+        access_token: externalJwt,
+        expires_in: 21600,
+        token_type: 'Bearer',
+        scope: 'public-api',
+      })
+
+    const options = {
+      grantType: 'clientCredentials' as const,
+      uri: 'https://api6.test/token',
+      key: 'client1',
+      secret: 's3cr3t',
       scope: 'public-api',
+    }
+    const expectedExpire = Date.now() + 21600000
+
+    const ret = await authenticate(options, null, dispatch, null)
+
+    assert.equal(ret.status, 'granted', ret.error)
+    assert.equal(ret.token, externalJwt)
+    assert.ok((ret.expire as number) >= expectedExpire)
+    assert.ok((ret.expire as number) < expectedExpire + 1000)
+    assert.ok(scope.isDone())
+  })
+
+  await t.test('should not authenticate with missing options', async () => {
+    const options = {} as Options
+
+    const ret = await authenticate(options, null, dispatch, null)
+
+    assert.equal(ret.status, 'error')
+    assert.equal(typeof ret.error, 'string')
+  })
+
+  await t.test('should return refused on authentication error', async () => {
+    const scope = nock('https://api8.test').post('/token').reply(400, {
+      error: '400',
+      // No error message
     })
-  const options = {
-    grantType: 'clientCredentials' as const,
-    uri: 'https://api5.test/token',
-    key: 'client1',
-    secret: 's3cr3t',
-  }
-  const expectedExpire = Date.now() + 21600000
+    const options = {
+      grantType: 'refreshToken' as const,
+      uri: 'https://api8.test/token',
+      key: 'client1',
+      secret: 's3cr3t',
+      redirectUri: 'https://redirect.com/here',
+      refreshToken: 'r3fr3sh',
+    }
+    const expectedResponse = {
+      status: 'refused',
+      error: 'Refused by service',
+    }
 
-  const ret = await authenticate(options, null, dispatch, null)
+    const ret = await authenticate(options, null, dispatch, null)
 
-  t.is(ret.status, 'granted', ret.error)
-  t.is(ret.token, externalJwt)
-  t.true((ret.expire as number) >= expectedExpire)
-  t.true((ret.expire as number) < expectedExpire + 1000)
-  t.true(scope.isDone())
-})
+    assert.deepEqual(ret, expectedResponse)
+    assert.ok(scope.isDone())
+  })
 
-test('should authenticate with jwt-bearer credentials', async (t) => {
-  const scope = nock('https://api7.test', {
-    reqheaders: {
-      'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+  await t.test(
+    'should return error message from service when refused',
+    async () => {
+      const scope = nock('https://api8.test').post('/token').reply(400, {
+        error: '400',
+        error_description: 'Awful error',
+      })
+      const options = {
+        grantType: 'refreshToken' as const,
+        uri: 'https://api8.test/token',
+        key: 'client1',
+        secret: 's3cr3t',
+        redirectUri: 'https://redirect.com/here',
+        refreshToken: 'r3fr3sh',
+      }
+      const expectedResponse = {
+        status: 'refused',
+        error: 'Refused by service: Awful error',
+      }
+
+      const ret = await authenticate(options, null, dispatch, null)
+
+      assert.deepEqual(ret, expectedResponse)
+      assert.ok(scope.isDone())
     },
+  )
+
+  await t.test('should return error when apiUrl not found', async () => {
+    const scope = nock('https://api3.test').post('/token').reply(404)
+    const options = {
+      grantType: 'refreshToken' as const,
+      uri: 'https://api3.test/token',
+      key: 'client1',
+      secret: 's3cr3t',
+      redirectUri: 'https://redirect.com/here',
+      refreshToken: 'r3fr3sh',
+    }
+
+    const ret = await authenticate(options, null, dispatch, null)
+
+    assert.equal(ret.status, 'error')
+    assert.equal(typeof ret.error, 'string')
+    assert.ok(scope.isDone())
   })
-    .post('/token', expectedJwtAssertionRequest)
-    .reply(200, jwtAssertionResponse)
-  const options = {
-    grantType: 'jwtAssertion' as const,
-    uri: 'https://api7.test/token',
-    key: 'client1',
-    secret: privateKey,
-    scope: 'https://api.test/all',
-    audience: 'https://api.test/token',
-    algorithm: 'RS256' as const,
-    expiresIn: 3600,
-  }
-  const expectedExpire = Date.now() + 3599000
 
-  const ret = await authenticate(options, null, dispatch, null)
+  await t.test(
+    'should return error when json response is not valid',
+    async () => {
+      const scope = nock('https://api4.test').post('/token').reply(200)
+      const options = {
+        grantType: 'refreshToken' as const,
+        uri: 'https://api4.test/token',
+        key: 'client1',
+        secret: 's3cr3t',
+        redirectUri: 'https://redirect.com/here',
+        refreshToken: 'r3fr3sh',
+      }
 
-  t.is(ret.status, 'granted', ret.error)
-  t.is(ret.token, 't0k3nFr0mJWT')
-  t.true((ret.expire as number) >= expectedExpire)
-  t.true((ret.expire as number) < expectedExpire + 1000)
-  t.true(scope.isDone())
-})
+      const ret = await authenticate(options, null, dispatch, null)
 
-test('should include scope in grant request', async (t) => {
-  const expectedRequest = 'grant_type=client_credentials&scope=public-api'
-  const scope = nock('https://api6.test', {
-    reqheaders: {
-      'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-      Authorization: 'Basic Y2xpZW50MTpzM2NyM3Q=',
+      assert.equal(ret.status, 'error')
+      assert.equal(typeof ret.error, 'string')
+      assert.ok(scope.isDone())
     },
+  )
+
+  await t.test('should return error when grant type is invalid', async () => {
+    const options = {
+      grantType: 'invalid',
+      uri: 'https://api4.test/token',
+      key: 'client1',
+      secret: 's3cr3t',
+    } as unknown as Options
+    const expected = {
+      status: 'error',
+      error: 'Unknown or missing grant type option',
+    }
+
+    const ret = await authenticate(options, null, dispatch, null)
+
+    assert.deepEqual(ret, expected)
   })
-    .post('/token', expectedRequest)
-    .reply(200, {
-      access_token: externalJwt,
-      expires_in: 21600,
-      token_type: 'Bearer',
-      scope: 'public-api',
-    })
 
-  const options = {
-    grantType: 'clientCredentials' as const,
-    uri: 'https://api6.test/token',
-    key: 'client1',
-    secret: 's3cr3t',
-    scope: 'public-api',
-  }
-  const expectedExpire = Date.now() + 21600000
+  await t.test('should return error when uri is missing', async () => {
+    const options = {
+      grantType: 'authorizationCode' as const,
+      // No uri
+      key: 'client1',
+      secret: 's3cr3t',
+      redirectUri: 'https://redirect.com/here',
+      code: '4Uthc0d3',
+      authHeaderType: 'Basic',
+    }
+    const expected = {
+      status: 'error',
+      error: 'Missing uri option',
+    }
 
-  const ret = await authenticate(options, null, dispatch, null)
+    const ret = await authenticate(options, null, dispatch, null)
 
-  t.is(ret.status, 'granted', ret.error)
-  t.is(ret.token, externalJwt)
-  t.true((ret.expire as number) >= expectedExpire)
-  t.true((ret.expire as number) < expectedExpire + 1000)
-  t.true(scope.isDone())
-})
-
-test('should not authenticate with missing options', async (t) => {
-  const options = {} as Options
-
-  const ret = await authenticate(options, null, dispatch, null)
-
-  t.is(ret.status, 'error')
-  t.is(typeof ret.error, 'string')
-})
-
-test('should return refused on authentication error', async (t) => {
-  const scope = nock('https://api8.test').post('/token').reply(400, {
-    error: '400',
-    // No error message
+    assert.deepEqual(ret, expected)
   })
-  const options = {
-    grantType: 'refreshToken' as const,
-    uri: 'https://api8.test/token',
-    key: 'client1',
-    secret: 's3cr3t',
-    redirectUri: 'https://redirect.com/here',
-    refreshToken: 'r3fr3sh',
-  }
-  const expectedResponse = {
-    status: 'refused',
-    error: 'Refused by service',
-  }
 
-  const ret = await authenticate(options, null, dispatch, null)
+  await t.test(
+    'should return error when code and redirectUri for authorizationCode is missing',
+    async () => {
+      const options = {
+        grantType: 'authorizationCode' as const,
+        uri: 'https://api4.test/token',
+        key: 'client1',
+        secret: 's3cr3t',
+        // No redirectUri
+        // No code
+        authHeaderType: 'Basic',
+      }
+      const expected = {
+        status: 'error',
+        error: 'Missing redirectUri, code options',
+      }
 
-  t.deepEqual(ret, expectedResponse)
-  t.true(scope.isDone())
-})
+      const ret = await authenticate(options, null, dispatch, null)
 
-test('should return error message from service when refused', async (t) => {
-  const scope = nock('https://api8.test').post('/token').reply(400, {
-    error: '400',
-    error_description: 'Awful error',
-  })
-  const options = {
-    grantType: 'refreshToken' as const,
-    uri: 'https://api8.test/token',
-    key: 'client1',
-    secret: 's3cr3t',
-    redirectUri: 'https://redirect.com/here',
-    refreshToken: 'r3fr3sh',
-  }
-  const expectedResponse = {
-    status: 'refused',
-    error: 'Refused by service: Awful error',
-  }
-
-  const ret = await authenticate(options, null, dispatch, null)
-
-  t.deepEqual(ret, expectedResponse)
-  t.true(scope.isDone())
-})
-
-test('should return error when apiUrl not found', async (t) => {
-  const scope = nock('https://api3.test').post('/token').reply(404)
-  const options = {
-    grantType: 'refreshToken' as const,
-    uri: 'https://api3.test/token',
-    key: 'client1',
-    secret: 's3cr3t',
-    redirectUri: 'https://redirect.com/here',
-    refreshToken: 'r3fr3sh',
-  }
-
-  const ret = await authenticate(options, null, dispatch, null)
-
-  t.is(ret.status, 'error')
-  t.is(typeof ret.error, 'string')
-  t.true(scope.isDone())
-})
-
-test('should return error when json response is not valid', async (t) => {
-  const scope = nock('https://api4.test').post('/token').reply(200)
-  const options = {
-    grantType: 'refreshToken' as const,
-    uri: 'https://api4.test/token',
-    key: 'client1',
-    secret: 's3cr3t',
-    redirectUri: 'https://redirect.com/here',
-    refreshToken: 'r3fr3sh',
-  }
-
-  const ret = await authenticate(options, null, dispatch, null)
-
-  t.is(ret.status, 'error')
-  t.is(typeof ret.error, 'string')
-  t.true(scope.isDone())
-})
-
-test('should return error when grant type is invalid', async (t) => {
-  const options = {
-    grantType: 'invalid',
-    uri: 'https://api4.test/token',
-    key: 'client1',
-    secret: 's3cr3t',
-  } as unknown as Options
-  const expected = {
-    status: 'error',
-    error: 'Unknown or missing grant type option',
-  }
-
-  const ret = await authenticate(options, null, dispatch, null)
-
-  t.deepEqual(ret, expected)
-})
-
-test('should return error when uri is missing', async (t) => {
-  const options = {
-    grantType: 'authorizationCode' as const,
-    // No uri
-    key: 'client1',
-    secret: 's3cr3t',
-    redirectUri: 'https://redirect.com/here',
-    code: '4Uthc0d3',
-    authHeaderType: 'Basic',
-  }
-  const expected = {
-    status: 'error',
-    error: 'Missing uri option',
-  }
-
-  const ret = await authenticate(options, null, dispatch, null)
-
-  t.deepEqual(ret, expected)
-})
-
-test('should return error when code and redirectUri for authorizationCode is missing', async (t) => {
-  const options = {
-    grantType: 'authorizationCode' as const,
-    uri: 'https://api4.test/token',
-    key: 'client1',
-    secret: 's3cr3t',
-    // No redirectUri
-    // No code
-    authHeaderType: 'Basic',
-  }
-  const expected = {
-    status: 'error',
-    error: 'Missing redirectUri, code options',
-  }
-
-  const ret = await authenticate(options, null, dispatch, null)
-
-  t.deepEqual(ret, expected)
+      assert.deepEqual(ret, expected)
+    },
+  )
 })
