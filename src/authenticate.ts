@@ -123,12 +123,76 @@ function getHeaders(options: Options): Record<string, string | string[]> {
         ),
       )
     : {}
+  headers['content-type'] = 'application/x-www-form-urlencoded;charset=UTF-8'
   if (options.grantType === 'clientCredentials') {
     headers.Authorization = `Basic ${base64Auth(options.key, options.secret)}`
   }
   return headers
 }
 
+const generateAuthentication = (data: ResponseData, options: Options) => ({
+  status: 'granted',
+  token: data.access_token,
+  expire: Date.now() + data.expires_in * 1000,
+  type: options.authHeaderType,
+  ...(data.refresh_token ? { refreshToken: data.refresh_token } : {}),
+})
+
+/**
+ * Send the request and handle the response.
+ */
+async function requestAuth(
+  options: Options,
+  authentication: Authentication | null,
+) {
+  // Prepare request and uri
+  const uri = options.uri
+  const body = serializeForm({
+    ...prepareFormData(options, authentication),
+    ...(options.scope ? { scope: options.scope } : {}),
+  })
+  const request = {
+    method: 'POST',
+    body,
+    headers: getHeaders(options),
+  }
+  debug(`Sending auth request: ${JSON.stringify(request)}`)
+
+  // Send request
+  let response: Response
+  try {
+    response = await fetch(uri, request)
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    debug(`Auth attempt failed: ${message}`)
+    return { status: 'error', error: message }
+  }
+
+  // Handle response
+  const data = await parseData(response)
+  debug(`Received auth response: ${JSON.stringify(data)}`)
+  if (response.ok) {
+    if (data) {
+      return generateAuthentication(data, options)
+    } else {
+      return { status: 'error', error: 'Invalid json response' }
+    }
+  } else if (response.status === 400) {
+    return {
+      status: 'refused',
+      error: data?.error_description
+        ? `Refused by service: ${data?.error_description}`
+        : 'Refused by service',
+    }
+  } else {
+    return { status: 'error', error: response.statusText }
+  }
+}
+
+/**
+ * Authenticate based on the given `options`. Will send a request according to
+ * the releveant OAuth2 scheme and return as an Integreat authentication object.
+ */
 export default async function authenticate(
   options: Partial<AuthOptions> | null,
   _action: Action | null,
@@ -149,58 +213,5 @@ export default async function authenticate(
     }
   }
 
-  const uri = options.uri
-  const body = serializeForm({
-    ...prepareFormData(options, authentication),
-    ...(options.scope ? { scope: options.scope } : {}),
-  })
-  const headers = {
-    'content-type': 'application/x-www-form-urlencoded;charset=UTF-8',
-    ...getHeaders(options),
-  }
-  const request = {
-    method: 'POST',
-    body,
-    headers,
-  }
-  debug(`Sending auth request: ${JSON.stringify(request)}`)
-
-  let response: Response
-  try {
-    response = await fetch(uri, request)
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error)
-    debug(`Auth attempt failed: ${message}`)
-    return {
-      status: 'error',
-      error: message,
-    }
-  }
-
-  const data = await parseData(response)
-  debug(`Received auth response: ${JSON.stringify(data)}`)
-  if (response.ok) {
-    if (data) {
-      return {
-        status: 'granted',
-        token: data.access_token,
-        expire: Date.now() + data.expires_in * 1000,
-        type: options.authHeaderType,
-        ...(data.refresh_token ? { refreshToken: data.refresh_token } : {}),
-      }
-    } else {
-      return { status: 'error', error: 'Invalid json response' }
-    }
-  } else {
-    if (response.status === 400) {
-      return {
-        status: 'refused',
-        error: data?.error_description
-          ? `Refused by service: ${data?.error_description}`
-          : 'Refused by service',
-      }
-    } else {
-      return { status: 'error', error: response.statusText }
-    }
-  }
+  return await requestAuth(options, authentication)
 }

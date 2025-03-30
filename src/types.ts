@@ -9,51 +9,43 @@ export interface Authentication extends BaseAuthentication {
   type?: string
 }
 
-export interface AuthCodeOptions {
-  grantType: 'authorizationCode'
+export interface BaseOptions {
   uri: string
   key: string
   secret: string
+}
+
+export interface AuthCodeOptions extends BaseOptions {
+  grantType: 'authorizationCode'
   redirectUri: string
   code: string
   scope?: string
 }
 
-export interface RefreshOptions {
+export interface RefreshOptions extends BaseOptions {
   grantType: 'refreshToken'
-  uri: string
-  key: string
-  secret: string
   redirectUri: string
   refreshToken: string
   scope?: string
 }
 
-export interface ClientOptions {
+export interface ClientOptions extends BaseOptions {
   grantType: 'clientCredentials'
-  uri: string
-  key: string
-  secret: string
   scope?: string
 }
 
-export interface JwtAssertionOptions {
+export interface JwtAssertionOptions extends BaseOptions {
   grantType: 'jwtAssertion'
-  uri: string
-  key: string
-  secret: string
   scope?: string
   audience?: string
   algorithm?: 'HS256' | 'RS256'
   expiresIn?: number
 }
 
-export type Options = BaseAuthOptions & { authHeaderType?: string } & (
-    | AuthCodeOptions
-    | RefreshOptions
-    | ClientOptions
-    | JwtAssertionOptions
-  )
+export type Options = BaseAuthOptions & {
+  authHeaderType?: string
+  headers?: Record<string, string | string[]>
+} & (AuthCodeOptions | RefreshOptions | ClientOptions | JwtAssertionOptions)
 
 export type AuthOptions = Partial<Options>
 
