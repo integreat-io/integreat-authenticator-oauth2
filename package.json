@@ -42,7 +42,7 @@
   },
   "dependencies": {
     "debug": "^4.4.0",
-    "integreat-adapter-form": "^1.1.2",
+    "integreat-adapter-form": "^1.1.3",
     "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
