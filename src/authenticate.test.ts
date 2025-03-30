@@ -275,6 +275,40 @@ test('authenticate', async (t) => {
     assert.equal(typeof ret.error, 'string')
   })
 
+  await t.test('should include custom headers in request', async () => {
+    const expectedRequest =
+      'grant_type=authorization_code&client_id=client1&client_secret=s3cr3t&' +
+      'redirect_uri=https%3A%2F%2Fredirect.com%2Fhere&code=4Uthc0d3'
+    const scope = nock('https://api9.test/', {
+      reqheaders: {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+        'weird-extra-header': 'cool',
+      },
+    })
+      .post('/token', expectedRequest)
+      .reply(200, {
+        refresh_token: 'r3fr3sh',
+        access_token: 't0k3n',
+        expires_in: 21600,
+      })
+    const options = {
+      grantType: 'authorizationCode' as const,
+      uri: 'https://api9.test/token',
+      key: 'client1',
+      secret: 's3cr3t',
+      redirectUri: 'https://redirect.com/here',
+      code: '4Uthc0d3',
+      headers: {
+        'weird-extra-header': 'cool',
+      },
+    }
+
+    const ret = await authenticate(options, null, dispatch, null)
+
+    assert.equal(ret.status, 'granted', ret.error)
+    assert.ok(scope.isDone())
+  })
+
   await t.test('should return refused on authentication error', async () => {
     const scope = nock('https://api8.test').post('/token').reply(400, {
       error: '400',

@@ -5,7 +5,7 @@ grant types: client credentials, authorization code, refresh token, and
 assertion with self-signed JWT token.
 
 [![npm Version](https://img.shields.io/npm/v/integreat-authenticator-oauth2.svg)](https://www.npmjs.com/package/integreat-authenticator-oauth2)
-[![Maintainability](https://api.codeclimate.com/v1/badges/6331723a6ff61de5f232/maintainability)](https://codeclimate.com/github/integreat-io/integreat-authenticator-oauth2/maintainability)
+[![Maintainability](https://api.codeclimate.com/v1/badges/af0082f45c52528e97bc/maintainability)](https://codeclimate.com/github/integreat-io/integreat-authenticator-oauth2/maintainability)
 
 ## Getting started
 
@@ -126,6 +126,9 @@ By default, `Authorization` headers should be of type `Bearer` for OAuth2, but
 some APIs may still have their custom way of doing it. To override what auth
 type to use, set `authHeaderType` to whatever you need it to be. Use an empty
 string to have no auth type at all (the token will be the value of the header).
+
+To include custom headers, set a `headers` object on `options` with the key
+and value for each header.
 
 ### Running the tests
 

@@ -18,6 +18,7 @@ test('should authenticate', async () => {
   const scope = nock('https://api1.test', {
     reqheaders: {
       'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+      'weird-extra-header': 'cool',
     },
   })
     .post('/token', expectedRequest)
@@ -33,6 +34,9 @@ test('should authenticate', async () => {
     secret: 's3cr3t',
     redirectUri: 'https://redirect.com/here',
     refreshToken: 'r3fr3sh',
+    headers: {
+      'weird-extra-header': 'cool',
+    },
   }
   const authentication = null
 

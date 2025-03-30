@@ -1,6 +1,7 @@
 import debugFn from 'debug'
 import formTransformer from 'integreat-adapter-form/transformer.js'
 import signJwt from './signJwt.js'
+import { isObject } from './utils/is.js'
 import type { Action, HandlerDispatch } from 'integreat'
 import type { AuthOptions, Options, Authentication } from './types.js'
 
@@ -113,12 +114,20 @@ function prepareFormData(
   }
 }
 
-const getHeaders = (options: Options): Record<string, string> =>
-  options.grantType === 'clientCredentials'
-    ? {
-        Authorization: `Basic ${base64Auth(options.key, options.secret)}`,
-      }
+function getHeaders(options: Options): Record<string, string | string[]> {
+  const headers = isObject(options.headers)
+    ? Object.fromEntries(
+        Object.entries(options.headers).filter(
+          (entry): entry is [string, string | string[]] =>
+            typeof entry[0] === 'string' || Array.isArray(entry[0]),
+        ),
+      )
     : {}
+  if (options.grantType === 'clientCredentials') {
+    headers.Authorization = `Basic ${base64Auth(options.key, options.secret)}`
+  }
+  return headers
+}
 
 export default async function authenticate(
   options: Partial<AuthOptions> | null,
