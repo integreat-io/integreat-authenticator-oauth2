@@ -73,7 +73,7 @@ const def = {
       key: 'client1',
       secret: 's3cr3t',
       redirectUri: 'https://service.test/cb',
-      code: 'c0d3'
+      code: 'c0d3',
     },
   },
 }
