@@ -21,7 +21,7 @@ export default function signJwt(options: JwtAssertionOptions): string | null {
   try {
     const token = jwt.sign(payload, secret, signOptions)
     return token
-  } catch (err) {
+  } catch {
     return null
   }
 }

@@ -57,7 +57,7 @@ function hasRequiredOptions(options: Options): string[] {
 async function parseData(response: Response): Promise<ResponseData | null> {
   try {
     return (await response.json()) as ResponseData // TODO: We assume that the data response is correct here. We should probably not.
-  } catch (error) {
+  } catch {
     return null
   }
 }
@@ -67,19 +67,29 @@ async function parseData(response: Response): Promise<ResponseData | null> {
 function resolveTypeAndToken(
   options: Options,
   authentication: Authentication | null,
-): ['authorization_code' | 'refresh_token', string] {
+) {
   if (
     options.grantType === 'authorizationCode' &&
     !authentication?.refreshToken
   ) {
-    return ['authorization_code', options.code]
+    return {
+      grant_type: 'authorization_code',
+      client_id: options.key,
+      client_secret: options.secret,
+      redirect_uri: options.redirectUri,
+      code: options.code,
+    }
   } else {
-    return [
-      'refresh_token',
-      options.grantType === 'refreshToken'
-        ? options.refreshToken
-        : (authentication?.refreshToken as string), // Use the auth refresh token for authorization code
-    ]
+    return {
+      grant_type: 'refresh_token',
+      client_id: options.key,
+      client_secret: options.secret,
+      redirect_uri: options.redirectUri,
+      refresh_token:
+        options.grantType === 'refreshToken'
+          ? options.refreshToken
+          : (authentication?.refreshToken as string), // Use the auth refresh token for authorization code
+    }
   }
 }
 
@@ -90,16 +100,7 @@ function prepareFormData(
   switch (options.grantType) {
     case 'authorizationCode':
     case 'refreshToken':
-      const [grantType, token] = resolveTypeAndToken(options, authentication)
-      return {
-        grant_type: grantType,
-        client_id: options.key,
-        client_secret: options.secret,
-        redirect_uri: options.redirectUri,
-        ...(grantType === 'refresh_token'
-          ? { refresh_token: token }
-          : { code: token }),
-      }
+      return resolveTypeAndToken(options, authentication)
     case 'jwtAssertion':
       return {
         grantType: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
