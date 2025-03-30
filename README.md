@@ -5,7 +5,7 @@ grant types: client credentials, authorization code, refresh token, and
 assertion with self-signed JWT token.
 
 [![npm Version](https://img.shields.io/npm/v/integreat-authenticator-oauth2.svg)](https://www.npmjs.com/package/integreat-authenticator-oauth2)
-[![Maintainability](https://api.codeclimate.com/v1/badges/af0082f45c52528e97bc/maintainability)](https://codeclimate.com/github/integreat-io/integreat-authenticator-oauth2/maintainability)
+[![Maintainability](https://qlty.sh/badges/7e327693-fe6d-4122-845b-cd1571030f73/maintainability.svg)](https://qlty.sh/gh/integreat-io/projects/integreat-authenticator-oauth2)
 
 ## Getting started
 
