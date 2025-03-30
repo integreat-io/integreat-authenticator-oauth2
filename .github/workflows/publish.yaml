@@ -1,7 +1,11 @@
 name: Publish Package to NPM
+
 on:
   release:
     types: [published]
+
+permissions: read-all
+
 jobs:
   publish:
     runs-on: ubuntu-latest
