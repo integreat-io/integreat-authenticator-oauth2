@@ -18,16 +18,12 @@
     "alwaysStrict": true,
     "skipLibCheck": true,
     "removeComments": true,
+    "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
       "*": ["node_modules/*"]
     },
     "outDir": "./dist"
   },
-  "include": ["src/**/*"],
-  "ts-node": {
-    "transpileOnly": true,
-    "files": true,
-    "experimentalResolver": true
-  }
+  "include": ["src/**/*"]
 }

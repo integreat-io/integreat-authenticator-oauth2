@@ -17,14 +17,17 @@
     }
   },
   "scripts": {
-    "test": "npm run build && c8 --reporter=text-summary ava --config ./ava-dist.config.cjs",
+    "test": "node --import tsx --test --enable-source-maps --experimental-test-coverage --test-reporter node-test-reporter 'src/**/*.test.ts'",
+    "test:legacy": "node --import tsx --no-deprecation --test --enable-source-maps src/*.test.ts src/**/*.test.ts",
     "test:watch": "npm run dev",
-    "dev": "ava --watch",
+    "dev": "node --import tsx --test --enable-source-maps --test-reporter node-test-reporter --watch 'src/**/*.test.ts' || exit 0",
     "build": "tsc",
     "prepare": "npm run build",
     "coverage": "c8 report",
     "lint": "eslint --ext .ts src",
-    "verify": "npm run lint && npm test"
+    "format": "prettier src/**/*.ts",
+    "typecheck": "tsc --noEmit --strict",
+    "verify": "npm run lint && npm run typecheck && npm test"
   },
   "repository": {
     "type": "git",
@@ -43,7 +46,7 @@
     "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
-    "@integreat/ts-dev-setup": "^5.0.4",
+    "@integreat/ts-dev-setup": "^8.1.2",
     "@types/debug": "^4.1.12",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^22.13.14",
